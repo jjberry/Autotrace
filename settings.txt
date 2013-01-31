@@ -1,0 +1,7 @@
+OverlayX = 950
+OverlayY = 100
+Angle = 0.0
+UsScale = 0.23856000602245331
+distance_btwn_lower_dots = 250.0
+tip_of_transducer_to_lower_right_dot = 314
+tip_of_transducer_to_lower_left_dot = 72.5
