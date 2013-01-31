@@ -1,0 +1,37 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+\begin{document}
+\noindent {\bf Using Image Diversity Software}
+
+\begin{itemize}
+\item {\bf Preparing files}
+\begin{enumerate}
+	\item Check that all files you want to evaluate have distinct names. Note: We need to systematically name files: 1234item56789abc: 12 designate study, 34 designate subject, item gives the word, 5 identifies repetition of word, 6789 identifies frame number, abc indicates who did the tracing. The tracer (``abc'') could be a person or an automatic tracing, in which case ``abc'' needs to indicate what the training system was...
+	\item Move all files into the same folder.
+\end{enumerate}
+
+\item {\bf Determining diversity}
+\begin{enumerate}
+	\item Open terminal.
+	\item Type {\it cd} then drag AutoTrace in from the desktop.
+	\item At the terminal prompt, type python image\_diversity.py
+	\item This should open a window asking for a file. Open the directory, select all relevant files,  click OPEN.
+	\item A window opens with the ultrasound images that says ``SELECT ROI'' (Region-Of-Interest). Click on the top left corner and drag the yellow box to get the region you want to be compared.
+	\item Wait. There will be signals on the terminal window that things are happening...``calculating average image'' and ``measuring distance from average image'' or some such.
+	\item A graph will pop up.
+	\item In terminal, it will say ``enter number of images to move''. Use the graph to identify where the diversity index changes dramatically, signaled by a leveling of the curve. This will get the images with the most variation. Hit ENTER.
+	\item Terminal tells you what's being copied and where it goes (into a subfolder called ``diverse'' in the directory that the files were in).
+	\item Terminal will ask ``Should I also add the 50 least different images?'' n ENtER = ``no'', y ENTER = ``yes''. It's good to include these to have a full range.
+	\item ``copythread stopped'' tells you that it is all finished.
+\end{enumerate}
+
+\item {\bf The next steps}
+\begin{enumerate}
+	\item Hand trace the contents of ``diverse''.
+	\item Train autotrace on this set.
+	\item Use the newly trained autotracer to automatically trace the remaining images.
+	\item Inspect the results by eye to see what needs to be fixed; fix those.
+	\item For the worst ones, click Bootstrap Add. This will list the correct form of the really bad ones, which can then be added to the training set.
+\end{enumerate}
+\end{itemize}
+\end{document}

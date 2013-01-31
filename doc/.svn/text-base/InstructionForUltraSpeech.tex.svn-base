@@ -1,0 +1,146 @@
+\documentclass[11pt]{article}
+
+\usepackage{fullpage, amsfonts}
+
+\begin{document}
+
+\title{Instruction for UltraSpeech\footnote{The current instruction is based on the Dec 2010 demonstration and notes. Updates will be made as needed.}}
+\author{Arizona Phonological Imaging Lab}
+
+\maketitle
+
+\section{Basic Structure of UltraSpeech}
+
+\noindent The data output will contain the following files:
+
+\begin{itemize}
+
+\item Stereo imaging (image frames from stereo camera)
+\item One camera imaging (image frames from mono camera)
+\item Sound
+\item Ultrasound
+\item LogFile
+
+\end{itemize}
+
+\section{Data Collection Procedure with UltraSpeech}
+
+\begin{enumerate}
+
+\item We work with two computers in the APIL experiment room - Ishtar and Shapur. Ishtar will be used to initialize the images and Shapur will be used to initialize the sound. When the EGG and Nasal Airflow are added, they will be done in the Shapur computer, more specifically in the mixer.
+\item Open a command prompt (``terminal window") on \textbf{Ishtar}.
+
+\begin{enumerate}
+
+\item Input on the command line: \textbf{roscore}.  This step will start the core service (Terminal can have tabs. Use Ctrl + C to kill if it is open in another terminal window.).
+\item \textbf{Turn on the gray sound card} (gray box next to the Shapur Machine). Make certain that the green bottom does not blink (Wait until green light goes off and blue light on left?).
+\item Turn on the EGG machine. Check if the machine cable is plugged in the channel 8 slot in the sound card.
+
+\end{enumerate}
+
+\item Open a command prompt on \textbf{Shapur}.
+
+\begin{enumerate}
+
+\item Type \textbf{roslaunch ultraspeech start1.launch}. A GUI (Graphical User Interface) will appear.
+\item Proceed to click 1-4 Phantom at the top right edge of ffado mixer box on Shapur. After clicking that option the user should hear a clicking sound, followed by a red led being turn on in the gray sound card. Make sure the lockbox and the ultrasound are turned on, and the ultrasound is connected to the lockbox.
+
+\end{enumerate}
+
+\item Go to the ultrasound machine:
+
+\begin{enumerate}
+
+\item \textbf{Turn on Sonosite (ultrasound machine) and lock box}.
+\item \textbf{Turn on stereo camera} plugged in Ishtar if red light is on (Mono camera is not yet ready.).
+\item Begin with the mono camera \textbf{unplugged}.
+
+\begin{itemize}
+
+\item[$\checkmark$] Check the connection between Sonosite and lockbox and the settings (cable plugged in the right arrow slot for Sonosite; ANALOG IN for lockbox)
+
+\end{itemize}
+
+\end{enumerate}
+
+\item Go back to \textbf{Ishtar}:
+
+\begin{enumerate}
+
+\item On the command prompt open another tab (this is done using Ctrl+Shift+T command).
+\item Type \textbf{roslaunch ultraspeech start2.launch}. A GUI will appear.
+\item After running roslaunch ultraspeech start2.launch and checking if everything is working, \textbf{plug in the mono camera} into the same computer that the stereo camera is connected to (Ishtar).
+
+\begin{itemize}
+
+\item[$\checkmark$] If things are not working, unplug stereo camera and run roslaunch ultraspeech start2.launch again. The ultrasound can stay on.
+
+\end{itemize}
+
+\item Run \textbf{roslaunch ultraspeech start3.launch}.
+
+\end{enumerate}
+
+\item Check if five windows are opened on Ishtar: stereo left, stereo right, mono, stimuli list, and experiment screen. Use camera windows to place camera.
+\item The stimuli window will ask for a text file (this is what the subject will be saying), and the number of repetitions required. Proceed to select the file by pressing the button to the right of the blank space, this will browse for a text file.
+\item Once the user is ready, proceed to hit start on the GUI.
+\item Ask the user to say the words in the GUI and press forward to continue.
+\item Once the words and the repetition number are met, proceed to click finish. All the images and sounds should be saved on their respective computers. The results will be saved in the ``UltraspeechData" folder in two computers.
+
+\begin{enumerate}
+
+\item Check Shapur for EGG and sound data
+\item Check Ishtar for camera images and ultrasound video
+
+\end{enumerate}
+
+\end{enumerate}
+
+\section{Other Notes on UltraSpeech Data Collection}
+
+\begin{itemize}
+
+\item Login information for Ishtar and Shapur: apil (username); ultrasound (password)
+\item Do not turn off the machines!
+\item Update svn repository on Ishtar to get new files. To do this,
+
+\begin{itemize}
+
+\item Type \textbf{roscd ultraspeech} on a command prompt.
+\item Type \textbf{svn update}.
+
+\end{itemize}
+
+\item General troubleshooting: 
+
+\begin{itemize}
+
+\item If terminal spits out red text / red light turns off or won't come on / green light goes off / etc., hit Ctrl + C and roslaunch again.
+\item Enter password if machine is asleep.
+
+\end{itemize}
+
+\item Sounds - Shapur
+
+\begin{itemize}
+
+\item EGG
+\item Microphones 1-4
+
+\end{itemize}
+
+\item Images - Ishtar
+
+\begin{itemize}
+
+\item Log File: Contains timestamp for different images.
+\item MonoCam: The output of just one image (regular image photo). (Single Frame Images)
+\item StereoCam (Left): Used for depth analysis. (Single frame Images)
+\item StereoCam (Right): Used for depth analysis. (Single frame Images)
+\item UltraSound: DV Movie
+
+\end{itemize}
+
+\end{itemize}
+
+\end{document}
