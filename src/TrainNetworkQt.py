@@ -10,12 +10,17 @@ TrainNetworkQt.py
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
+import backprop
+
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.mainWidget = MainWidget(self)
         self.setCentralWidget(self.mainWidget)
         self.setWindowTitle(self.tr("Train Network"))
+
+        self.thread = TrainThread()
+        self.connect(self.thread, SIGNAL('trainingFinished()'), self.trainingFinished)
 
         self.createActions()
         self.createMenus()
@@ -24,12 +29,12 @@ class MainWindow(QMainWindow):
         self.openAction = QAction(self.tr("Set &data directory"), self)
         self.openAction.setShortcut(QKeySequence.Open)
         self.openAction.setStatusTip(self.tr("Set the data directory"))
-        self.connect(self.openAction, SIGNAL('triggered()'), self.mainWidget.openDataDir)
+        self.connect(self.openAction, SIGNAL('triggered()'), self.openDataDir)
         
         self.exitAction = QAction(self.tr("E&xit"), self)
         self.exitAction.setShortcut(self.tr("Ctrl+Q"))
         self.exitAction.setStatusTip(self.tr("Exit the application"))
-        self.connect(self.exitAction, SIGNAL('triggered()'), self.close)
+        self.connect(self.exitAction, SIGNAL('triggered()'), self.onClose)
 
         self.parametersAction = QAction(self.tr("Set &parameters"), self)
         self.parametersAction.setStatusTip(self.tr("Set the training parameters"))
@@ -49,7 +54,35 @@ class MainWindow(QMainWindow):
         if dialog.exec_():
             layer_sizes, layer_types, pretrain_iter, pretrain_lr, backprop_iter, limit, limit_num = dialog.getValues()
             print layer_sizes, layer_types, pretrain_iter, pretrain_lr, backprop_iter, limit, limit_num
+ 
+    def onClose(self):
+        #if self.thread.isRunning():
+        #    self.thread.terminate()
+        self.close()
+    
+    def trainingFinished(self):
+        self.mainWidget.textBrowser.append("Training finished")
+        self.mainWidget.trainButton.setEnabled(True)
         
+    def browseClicked(self):
+        self.openDataDir()
+        
+    def openDataDir(self):
+        fileDialog = QFileDialog()
+        fileDialog.setFileMode(fileDialog.DirectoryOnly)
+        self.dataDir = fileDialog.getExistingDirectory(caption="Choose the data directory")
+        self.mainWidget.dataDirLineEdit.setText(self.dataDir)
+                    
+    def trainClicked(self):
+        self.mainWidget.textBrowser.append(self.tr("Training started"))
+        self.mainWidget.trainButton.setEnabled(False)
+        self.trainNetwork()
+        
+    def trainNetwork(self):
+        self.thread.start()    
+        
+    def write(self, txt):
+        self.mainWidget.textBrowser.append(str(txt))
       
 class MainWidget(QWidget):
     def __init__(self, parent):
@@ -59,13 +92,13 @@ class MainWidget(QWidget):
         self.dataLabel = QLabel(self.tr("Data Directory:"))
         self.dataLabel.setBuddy(self.dataDirLineEdit)
         self.dataBrowseButton = QPushButton(self.tr("&Browse..."))
-        self.connect(self.dataBrowseButton, SIGNAL('clicked()'), self.browseClicked)
+        self.connect(self.dataBrowseButton, SIGNAL('clicked()'), parent.browseClicked)
              
         self.closeButton = QPushButton(self.tr("Close"))
-        self.connect(self.closeButton, SIGNAL('clicked()'), parent.close)
+        self.connect(self.closeButton, SIGNAL('clicked()'), parent.onClose)
         
         self.trainButton = QPushButton(self.tr("&Train"))
-        self.connect(self.trainButton, SIGNAL('clicked()'), self.trainClicked)
+        self.connect(self.trainButton, SIGNAL('clicked()'), parent.trainClicked)
         
         self.textBrowser = QTextBrowser()
                 
@@ -83,20 +116,8 @@ class MainWidget(QWidget):
         self.mainLayout.addWidget(self.textBrowser)
         self.mainLayout.addLayout(self.buttonLayout)
         
-        self.setLayout(self.mainLayout)
-    
-    def browseClicked(self):
-        self.openDataDir()
+        self.setLayout(self.mainLayout)    
         
-    def openDataDir(self):
-        fileDialog = QFileDialog()
-        fileDialog.setFileMode(fileDialog.DirectoryOnly)
-        self.dataDir = fileDialog.getExistingDirectory(caption="Choose the data directory")
-        self.dataDirLineEdit.setText(self.dataDir)
-                    
-    def trainClicked(self):
-        self.textBrowser.append(self.tr("Training started"))    
-
 class ParametersDialog(QDialog):
     def __init__(self, parent=None):
         super(ParametersDialog, self).__init__(parent)
@@ -212,7 +233,14 @@ class ParametersDialog(QDialog):
         self.pretrainIterLineEdit.setEnabled(not self.useDefaultCheckBox.isChecked())
         self.pretrainLRLineEdit.setEnabled(not self.useDefaultCheckBox.isChecked())
         self.backpropIterLineEdit.setEnabled(not self.useDefaultCheckBox.isChecked())
-        
+
+class TrainThread(QThread):
+    def __init__(self, parent=None):
+        super(TrainThread, self).__init__(parent)
+              
+    def run(self):
+        backprop.demo_xor()
+        self.emit(SIGNAL('trainingFinished()'))
         
 if __name__ == "__main__":
     import sys
