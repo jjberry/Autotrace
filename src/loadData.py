@@ -1,6 +1,7 @@
 import numpy as np
 import os
-import cv
+#import cv
+from PIL import Image
 from scipy.interpolate import interp1d
 from scipy.misc import imresize
 import multiprocessing
@@ -35,7 +36,8 @@ class WorkThread(multiprocessing.Process):
 
 
 class Loader:
-    def __init__(self, data_dir, roi=None, max_images=None, num_threads=2, continds=None, m=None, s=None):
+    def __init__(self, data_dir, roi=None, max_images=None, num_threads=2, continds=None, 
+                 m=None, s=None, stream=sys.stdout):
         self.jpg_dir = os.path.join(data_dir, 'JPG')
         self.contoursCSV = os.path.join(data_dir, 'TongueContours.csv')
         self.data_dir = data_dir
@@ -45,6 +47,7 @@ class Loader:
         self.continds = continds
         self.m = m
         self.s = s	
+        self.stream = stream
                 
     def loadContours(self):
         ''' Returns lists with jpg filenames, xcoords, and ycoords from the 
@@ -147,7 +150,7 @@ class Loader:
         results = []
         for i in range(nContours):
             if ((i % 100) == 0) and (i > 0):
-                print "...finished %d of %d contours" % (i, nContours)
+                self.stream.write("...finished %d of %d contours" % (i, nContours))
 
             result = ResultsQueue_.get()
             results.append(result)
@@ -170,31 +173,35 @@ class Loader:
         # figure out what ROI to use
         if self.roi == None:
             if os.path.isfile(os.path.join(self.data_dir, 'ROI_config.txt')):
-                print "Found ROI_config.txt"
+                self.stream.write("Found ROI_config.txt")
                 c = open(os.path.join(self.data_dir, 'ROI_config.txt'), 'r').readlines()
                 top = int(c[1][:-1].split('\t')[1])
                 bottom = int(c[2][:-1].split('\t')[1])
                 left = int(c[3][:-1].split('\t')[1])
                 right = int(c[4][:-1].split('\t')[1])
-                print "using ROI: [%d:%d, %d:%d]" % (top, bottom, left, right)
+                self.stream.write("using ROI: [%d:%d, %d:%d]" % (top, bottom, left, right))
             else:
-                print "ROI_config.txt not found"
+                self.stream.write("ROI_config.txt not found")
                 top = 140 #default settings for the Sonosite Titan
                 bottom = 320
                 left = 250
                 right = 580
-                print "using ROI: [%d:%d, %d:%d]" % (top, bottom, left, right)
+                self.stream.write("using ROI: [%d:%d, %d:%d]" % (top, bottom, left, right))
         else:
             top = self.roi[0]
             bottom = self.roi[1]
             left = self.roi[2]
             right = self.roi[3]
-            print "using ROI: [%d:%d, %d:%d]" % (top, bottom, left, right)
+            self.stream.write("using ROI: [%d:%d, %d:%d]" % (top, bottom, left, right))
             
         scale = 0.1
         #get height and width
-        img = cv.LoadImageM(self.contfiles[0], iscolor=False)
-        img = np.asarray(img)
+        #img = cv.LoadImageM(self.contfiles[0], iscolor=False)
+        #img = np.asarray(img)
+        imgf = Image.open(self.contfiles[0])
+        imgm = imgf.convert('1')
+        img = np.array(imgm.getdata()).reshape(imgm.size[0], imgm.size[1])
+        
         cropped = img[top:bottom, left:right]
         cheight, cwidth = cropped.shape
         self.height = np.floor(cheight * scale).astype(np.int)
@@ -212,8 +219,12 @@ class Loader:
         
         XC = np.zeros((len(self.contfiles), self.height*self.width+len(self.continds)))
         for i in range(len(self.contfiles)):
-            img = cv.LoadImageM(self.contfiles[i], iscolor=False)
-            img = np.asarray(img)
+            #img = cv.LoadImageM(self.contfiles[i], iscolor=False)
+            #img = np.asarray(img)
+            imgf = Image.open(self.contfiles[i])
+            imgm = imgf.convert('1')
+            img = np.array(imgm.getdata()).reshape(imgm.size[0], imgm.size[1])
+
             cropped = img[top:bottom, left:right]
             resized = imresize(cropped, (self.height, self.width), interp='bicubic') 
             scaled = np.double(resized)/255
@@ -268,15 +279,15 @@ class Loader:
         self.loadContours()
         if self.max_images != None:
             self.sampleContours()
-        print "Cleaning contours..."
+        self.stream.write("Cleaning contours...")
         self.cleanContours()
-        print "Creating contour images..."
+        self.stream.write("Creating contour images...")
         #if os.path.isfile(os.path.join(self.data_dir, 'contimgs.pkl')):
         #    self.contimgs = pickle.load(file(os.path.join(self.data_dir, 'contimgs.pkl'), 'rb'))
         #else:
-        print len(self.cxc)
+        self.stream.write(len(self.cxc))
         self.makeContourImages()
-        print "Processing ultrasound images..."
+        self.stream.write("Processing ultrasound images...")
         self.combineUltrasoundAndContourImages(sigmoid=sigmoid_1st_layer)
 
 

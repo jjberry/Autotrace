@@ -6,21 +6,21 @@ import scipy.io
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-def demo_autoencoder():
+def demo_autoencoder(stream):
     #load and norm the data
     data = np.load('scaled_images.npy')
     data = np.asarray(data, dtype='float32')
     data /= 255.0
     #set up and train the initial deepnet
     dnn = deepnet.DeepNet([data.shape[1], data.shape[1], data.shape[1], 
-        42], ['sigmoid','sigmoid','sigmoid','sigmoid'])
+        42], ['sigmoid','sigmoid','sigmoid','sigmoid'], stream=stream)
     dnn.train(data, [225, 75, 75], 0.0025)
     #save the trained deepnet
     pickle.dump(dnn, file('pretrained.pkl','wb'))
     #unroll the deepnet into an autoencoder
     autoenc = unroll_network(dnn.network)
     ##fine-tune with backprop
-    mlp = backprop.NeuralNet(network=autoenc)
+    mlp = backprop.NeuralNet(network=autoenc, stream=stream)
     trained = mlp.train(mlp.network, data, data, max_iter=30, 
             validErrFunc='reconstruction', targetCost='linSquaredErr')
     ##save
