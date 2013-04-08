@@ -17,7 +17,7 @@ class NeuralNet(object):
     hidden units, and hidtype containing a string with the activation type, i.e.
     "sigmoid".
     '''
-    def __init__(self, network=None, layer_sizes=None, layer_types=None):
+    def __init__(self, network=None, layer_sizes=None, layer_types=None, stream=sys.stdout):
         layers = []
         if (network != None):
             # copy the weights from the given network onto the GPU
@@ -49,6 +49,8 @@ class NeuralNet(object):
                 l = Layer(W, hbias, layer_sizes[i+1], layer_types[i+1])
                 layers.append(l)
         self.network = layers
+        
+        self.stream = stream
 
     def run_through_network(self, data, net=None):
         '''
@@ -137,7 +139,7 @@ class NeuralNet(object):
         tinds = tindex[:(np.min([self.batch_size, self.n]))]
         
         # Perform gradient descent
-        print "Starting %d iterations of backprop." % max_iter
+        self.stream.write("Starting {} iterations of backprop.".format(max_iter))
         if (initialfit>0):  
             # This gets the activation of next to last layer to train top layer 
             transformedX = self.run_through_network(data, network[:-1])
@@ -147,10 +149,10 @@ class NeuralNet(object):
             if validX is not None:
                 validerr = self.getError(network, validX, validT, 
                         np.ones((validX.shape[0],)))
-                print "Iteration %3d: TrainErr = %4.3f, ValidErr = %4.3f" % \
-                        (i+1, trainerr, validerr)
+                self.stream.write("Iteration %3d: TrainErr = %4.3f, ValidErr = %4.3f" % \
+                        (i+1, trainerr, validerr))
             else:
-                print "Iteration %3d: TrainErr = %4.3f" %(i+1, trainerr)
+                self.stream.write("Iteration %3d: TrainErr = %4.3f" %(i+1, trainerr))
             # Train the top layer only for initialfit iters
             if (i < initialfit):
                 toplayer = self.doBackprop(transformedX, targets, [network[-1]])
@@ -164,10 +166,10 @@ class NeuralNet(object):
         if validX is not None:
             validerr = self.getError(network, validX, validT, 
                     np.ones((validX.shape[0],)))
-            print "Final        : TrainErr = %4.3f, ValidErr = %4.3f" % \
-                    (trainerr, validerr)
+            self.stream.write("Final        : TrainErr = %4.3f, ValidErr = %4.3f" % \
+                    (trainerr, validerr))
         else:
-            print "Final        : TrainErr = %4.3f" %(trainerr)
+            self.stream.write("Final        : TrainErr = %4.3f" %(trainerr))
 
         return network
 
@@ -236,9 +238,7 @@ class NeuralNet(object):
             result = scipy.optimize.minimize(self.backprop_gradient, v, 
                     args=(network, tmpX, tmpT, tmpW),
                     method='CG', jac=True, options={'maxiter': self.cg_iter})
-            if (count%10 == 0):
-                print "batch %d of %d. success: %s" %(count+1, nbatches, 
-                     str(result.success))
+            self.stream.write("batch %d of %d" %(count+1, nbatches))
             count += 1         
             v = result.x
 
@@ -382,28 +382,29 @@ class Layer(object):
         self.n_hidden = n_hidden
         self.hidtype = hidtype
    
-def demo_xor():
+def demo_xor(stream=sys.stdout):
     '''Demonstration of backprop with classic XOR example
     '''
+    #stream = es.EmittingStream()
     data = np.array([[0.,0.],[0.,1.],[1.,0.],[1.,1.]])
     targets = np.array([[0.],[1.],[1.],[0.]])
-    nn = NeuralNet(layer_sizes=[2,2,1], layer_types=['sigmoid','sigmoid','sigmoid'])
-    print "initial parameters"
-    print "=================="
-    print "W 1", nn.network[0].W.shape
-    print nn.network[0].W
-    print "bias 1", nn.network[0].hbias.shape
-    print nn.network[0].hbias
-    print "W 2", nn.network[1].W.shape
-    print nn.network[1].W
-    print "bias 2", nn.network[1].hbias.shape
-    print nn.network[1].hbias
-    print "=================="
+    nn = NeuralNet(layer_sizes=[2,2,1], layer_types=['sigmoid','sigmoid','sigmoid'], stream=stream)
+    stream.write("initial parameters")
+    stream.write("==================")
+    stream.write("W 1 {}".format(nn.network[0].W.shape))
+    stream.write("{}".format(nn.network[0].W))
+    stream.write("bias 1 {}".format(nn.network[0].hbias.shape))
+    stream.write("{}".format(nn.network[0].hbias))
+    stream.write("W 2 {}".format(nn.network[1].W.shape))
+    stream.write("{}".format(nn.network[1].W))
+    stream.write("bias 2 {}".format(nn.network[1].hbias.shape))
+    stream.write("{}".format(nn.network[1].hbias))
+    stream.write("==================")
     net = nn.train(nn.network, data, targets, max_iter=10, targetCost='crossEntropy', 
             initialfit=0, cg_iter=100)
-    print "network test:"
+    stream.write("network test:")
     output = nn.run_through_network(data, net)
-    print output
+    stream.write(output)
 
 
 if __name__ == "__main__":

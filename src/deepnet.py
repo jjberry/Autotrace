@@ -37,7 +37,8 @@ class RBM(object):
     '''
 
     def __init__(self, n_visible, n_hidden=None, vistype='sigmoid', 
-            hidtype='sigmoid', W=None, hbias=None, vbias=None, batch_size=128):
+            hidtype='sigmoid', W=None, hbias=None, vbias=None, batch_size=128,
+            stream=sys.stdout):
         # initialize parameters
         self.SIZE_LIMIT = 80000000 # the size of the largest gpu array
         self.vistype = vistype
@@ -71,6 +72,7 @@ class RBM(object):
         self.wu_vh = gp.zeros((self.n_visible, self.n_hidden))
         self.wu_v = gp.zeros(self.n_visible)
         self.wu_h = gp.zeros(self.n_hidden)
+        self.stream = stream
 
     def train(self, fulldata, num_epochs, eta=0.01, hidden=None, sample=False, 
             early_stop=True):
@@ -116,7 +118,7 @@ class RBM(object):
             else:
                 momentum = final_momentum
             err = []
-            print "Training epoch %d of %d," %(epoch+1, num_epochs),
+            self.stream.write("Training epoch %d of %d" %(epoch+1, num_epochs))
             for chunk in range(n_chunks):
                 num_batches = chunk_size/self.batch_size
                 data = gp.garray(fulldata[chunk*chunk_size:(chunk+1)*chunk_size])
@@ -150,7 +152,7 @@ class RBM(object):
                     # calculate reconstruction error
                     err.append((v2-v1).euclid_norm()**2/(self.n_visible*self.batch_size))
                 err_hist.append(np.mean(err))
-                print "mean squared error: "+ str(np.mean(err))
+                self.stream.write("mean squared error: "+ str(np.mean(err)))
             
             # early stopping
             if early_stop:
@@ -236,10 +238,11 @@ class DeepNet(object):
         train
         run_through_network
     '''
-    def __init__(self, layer_sizes, layer_types):
+    def __init__(self, layer_sizes, layer_types, stream=sys.stdout):
         assert len(layer_sizes) == len(layer_types)
         self.layer_sizes = layer_sizes
         self.layer_types = layer_types
+        self.stream = stream
         
     def train(self, data, epochs, eta):
         '''
@@ -253,10 +256,10 @@ class DeepNet(object):
         layers = []
         vis = data
         for i in range(len(self.layer_sizes)-1):
-            print "Pretraining RBM %d, vis=%d, hid=%d" % (i+1, self.layer_sizes[i],
-                    self.layer_sizes[i+1])
+            self.stream.write("Pretraining RBM %d, vis=%d, hid=%d" % (i+1, self.layer_sizes[i],
+                    self.layer_sizes[i+1]))
             g_rbm = RBM(self.layer_sizes[i], self.layer_sizes[i+1], 
-                    self.layer_types[i], self.layer_types[i+1])
+                    self.layer_types[i], self.layer_types[i+1], stream=self.stream)
             g_rbm.train(vis, epochs[i], eta)
             hid = self.get_activation(g_rbm, vis)
             vis = hid
@@ -280,7 +283,7 @@ class DeepNet(object):
         for n_rbm in self.network:
             vis = gp.garray(hid)
             g_rbm = RBM(n_rbm.n_visible, n_rbm.n_hidden, n_rbm.vistype, 
-                    n_rbm.hidtype, n_rbm.W, n_rbm.hbias, n_rbm.vbias)
+                    n_rbm.hidtype, n_rbm.W, n_rbm.hbias, n_rbm.vbias, stream=self.stream)
             hid = self.get_activation(g_rbm, data)
             gp.free_reuse_cache()
         return hid
