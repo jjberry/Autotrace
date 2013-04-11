@@ -4,7 +4,7 @@ import backprop
 import cPickle as pickle
 import scipy.io
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+#import matplotlib.cm as cm
 
 def demo_autoencoder(stream):
     #load and norm the data
@@ -72,11 +72,11 @@ def visualize_results(netfile, datafile):
         rec = recon[inds[i]].reshape((dim,dim))
         plt.figure(i)
         ax = plt.subplot(211)
-        plt.imshow(orig, cmap=cm.gray)
+        plt.imshow(orig, cmap=plt.gray())
         ax.set_yticks([])
         ax.set_xticks([])
         ax = plt.subplot(212)
-        plt.imshow(rec, cmap=cm.gray)
+        plt.imshow(rec, cmap=plt.gray())
         ax.set_yticks([])
         ax.set_xticks([])
         plt.savefig('img_%d.jpg'%(inds[i]))
