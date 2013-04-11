@@ -7,14 +7,16 @@ TrainNetworkQt.py
     A Qt version of the network trainer that uses the python version of the deep net code
 '''
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt4.QtGui import QMainWindow, QKeySequence, QAction, QFileDialog, QMessageBox, QWidget, \
+QPushButton, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QApplication, QIntValidator, QDoubleValidator, \
+QCheckBox, QDialog, QTextBrowser, QDialogButtonBox
+from PyQt4.QtCore import SIGNAL, pyqtSignal, QThread, QObject
 
 import sys
 import backprop
 import deepnet
 import autoencoder
-#import loadData
+import loadData
 import numpy as np
 import scipy.io
 
@@ -96,7 +98,7 @@ class MainWindow(QMainWindow):
         fileDialog.setFileMode(fileDialog.DirectoryOnly)
         self.dataDir = fileDialog.getExistingDirectory(caption="Choose the data directory")
         self.mainWidget.dataDirLineEdit.setText(self.dataDir)
-        self.thread.setDataDir(self.DataDir)
+        self.thread.setDataDir(self.dataDir)
                     
     def trainClicked(self):
         if self.dataDir == '':
@@ -313,9 +315,18 @@ class TrainThread(QThread):
 
     def train(self):
         # this will be replaced by calls to loadData.py
-        data = np.load('scaled_images.npy')
-        data = np.asarray(data, dtype='float32')
-        data /= 255.0
+        #data = np.load('scaled_images.npy')
+        #data = np.asarray(data, dtype='float32')
+        #data /= 255.0
+        
+        l = loadData.Loader(str(self.dataDir),stream=self.stream)
+        if self.layer_types[0] != 'sigmoid':
+            layer1_sigmoid = False
+        else:
+            layer1_sigmoid = True
+        l.loadData(layer1_sigmoid)
+        data = l.XC
+        
         if self.limit:
             inds = np.arange(data.shape[0])
             np.random.shuffle(inds)

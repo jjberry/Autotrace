@@ -4,9 +4,9 @@ home = os.path.expanduser("~")
 sys.path.append(os.path.join(home, 'gnumpy'))
 import gnumpy as gp
 import numpy as np
-import scipy
+#import scipy
 import scipy.optimize
-import deepnet
+#import deepnet
 
 class NeuralNet(object):
     '''
@@ -344,7 +344,7 @@ class NeuralNet(object):
                     Ix = gp.dot(Ix,gp.concatenate((network[i].W,network[i].hbias),
                         axis=1)) * acts[i] * (1.0 - acts[i])
                 elif network[i-1].hidtype == 'gaussian':
-                    Ix = gp.dot(Ix,gp.concatentate((network[i].W,network[i].hbias),
+                    Ix = gp.dot(Ix,gp.concatenate((network[i].W,network[i].hbias),
                         axis=1))
                 Ix = Ix[:,:-1]
             gp.free_reuse_cache()

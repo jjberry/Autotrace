@@ -281,7 +281,7 @@ class DeepNet(object):
     def run_through_network(self, data):
         hid = data
         for n_rbm in self.network:
-            vis = gp.garray(hid)
+            #vis = gp.garray(hid)
             g_rbm = RBM(n_rbm.n_visible, n_rbm.n_hidden, n_rbm.vistype, 
                     n_rbm.hidtype, n_rbm.W, n_rbm.hbias, n_rbm.vbias, stream=self.stream)
             hid = self.get_activation(g_rbm, data)

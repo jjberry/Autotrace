@@ -158,7 +158,7 @@ class Loader:
         sortedresults = sorted(results, key = lambda r: r[1])
         self.contimgs = [i for (i,j) in sortedresults]
         
-    def combineUltrasoundAndContourImages(self, sigmoid=False):
+    def combineUltrasoundAndContourImages(self, sigmoid=True):
         ''' Similar to combineUltrasoundAndContourImages.m - returns an array with
             concatenated ultrasound images and their traces from makeContourImages.
             
@@ -227,10 +227,10 @@ class Loader:
 
             cropped = img[top:bottom, left:right]
             resized = imresize(cropped, (self.height, self.width), interp='bicubic') 
-            scaled = np.double(resized)/255
+            scaled = np.double(resized)/255.0
             
             cont = imresize(self.contimgs[i], (self.height, self.width), interp='bicubic')
-            cont = np.double(cont)/255
+            cont = np.double(cont)/255.0
             s = np.max(cont, axis=0)
             s[s<0.01] = 1.
             cont = cont / s
@@ -275,7 +275,7 @@ class Loader:
         self.traininds = np.asarray(traininds)
         self.validinds = np.asarray(validinds)
         
-    def loadData(self, sigmoid_1st_layer=False):
+    def loadData(self, sigmoid_1st_layer=True):
         self.loadContours()
         if self.max_images != None:
             self.sampleContours()
@@ -285,7 +285,7 @@ class Loader:
         #if os.path.isfile(os.path.join(self.data_dir, 'contimgs.pkl')):
         #    self.contimgs = pickle.load(file(os.path.join(self.data_dir, 'contimgs.pkl'), 'rb'))
         #else:
-        self.stream.write(len(self.cxc))
+        self.stream.write(str(len(self.cxc)))
         self.makeContourImages()
         self.stream.write("Processing ultrasound images...")
         self.combineUltrasoundAndContourImages(sigmoid=sigmoid_1st_layer)
@@ -302,8 +302,7 @@ class Loader:
         self.heatmap = np.double(heatmap)/np.max(heatmap)
         if makefig:
             import pylab 
-            import matplotlib.cm as cm
-            pylab.imshow(heatmap,cm.gray)
+            pylab.imshow(heatmap,pylab.gray())
             pylab.savefig('heatmap.jpg')
             pylab.clf()
             pylab.close()
