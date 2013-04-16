@@ -202,7 +202,7 @@ class ImageWindow:
             sum_img += tmp 
         #sum_img = (sum_img * 255)/(numpy.max(sum_img))
         sum_img = sum_img/len(self.datafiles)
-        cv.SaveImage(self.pathtofiles+'SumImage.png', sum_img)   
+        cv.SaveImage(self.pathtofiles+'SumImage.png', cv.fromarray(sum_img))   
         self.sum_img = sum_img
         
         
