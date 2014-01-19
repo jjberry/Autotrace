@@ -116,7 +116,7 @@ class Controller:
         fc.set_default_response(gtk.RESPONSE_OK)
         fc.set_select_multiple(True)
         ffilter = gtk.FileFilter()
-        ffilter.set_name('.jpg Files')
+        ffilter.set_name('Image Files')
         ffilter.add_pattern('*.jpg')
         ffilter.add_pattern('*.png')
         fc.add_filter(ffilter)
