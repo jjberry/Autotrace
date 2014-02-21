@@ -67,7 +67,7 @@ class ImageWindow:
         self.pathtofiles = '/'.join(self.datafiles[0].split('/')[:-1]) + '/'
 
         #Read ROI_config.txt if it exists
-        self.config = self.pathtofiles + 'ROI_config.txt'
+        self.config = os.path.join(self.pathtofiles, 'ROI_config.txt')
         if (os.path.isfile(self.config)):
             c = open(self.config, 'r').readlines()
             self.top = int(c[1][:-1].split('\t')[1])
@@ -94,7 +94,7 @@ class ImageWindow:
             action=gtk.FILE_CHOOSER_ACTION_OPEN, 
             buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-        g_directory = fc.get_current_folder()
+        g_directory = fc.get_current_folder() if fc.get_current_folder() else os.path.expanduser("~")
         fc.set_current_folder(g_directory)
         fc.set_default_response(gtk.RESPONSE_OK)
         fc.set_select_multiple(True)
