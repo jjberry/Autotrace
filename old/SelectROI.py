@@ -130,8 +130,10 @@ class ImageWindow:
         fc.set_select_multiple(False)
         fc.set_do_overwrite_confirmation(True)
         response = fc.run()
+        #exit fc on cancel..
         if response == gtk.RESPONSE_CANCEL:
             fc.destroy()
+        #save...
         if response == gtk.RESPONSE_OK:
             savename = fc.get_filename()
             f_path, f_name = os.path.split(savename)
@@ -147,8 +149,10 @@ class ImageWindow:
             dialog.set_title("Save confirmation")
         dialog.add_button("Exit Program", 100) #100 is an arbitrary choice...
         response = dialog.run()
+        #if we want to exit the program...
         if response == 100:
             gtk.main_quit()
+        #if we just want to exit fc...
         else:
             dialog.destroy()
             fc.destroy()
