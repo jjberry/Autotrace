@@ -151,6 +151,8 @@ class ImageWindow:
         response = dialog.run()
         #if we want to exit the program...
         if response == 100:
+            dialog.destroy()
+            fc.destroy()
             gtk.main_quit()
         #if we just want to exit fc...
         else:
