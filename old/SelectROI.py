@@ -45,6 +45,7 @@ class ImageWindow:
         
         self.statusbar = self.wTree.get_widget("statusbar1")
         self.machineCBox = self.wTree.get_widget("combobox1")
+        self.machineCBox.set_active(-1) #initialize as "UNKNOWN"
         self.topentry = self.wTree.get_widget("topentry")
         self.bottomentry = self.wTree.get_widget("bottomentry")
         self.leftentry = self.wTree.get_widget("leftentry")
@@ -67,8 +68,10 @@ class ImageWindow:
         self.pathtofiles = '/'.join(self.datafiles[0].split('/')[:-1]) + '/'
 
         #Read ROI_config.txt if it exists
-        self.config = os.path.join(self.pathtofiles, 'ROI_config.txt')
-        if (os.path.isfile(self.config)):
+        #self.config = os.path.join(self.pathtofiles, 'ROI_config.txt')
+        self.config = 'ROI_config.txt'
+        #if (os.path.isfile(self.config)):
+        if os.path.isfile(os.path.join(self.pathtofiles, self.config)):
             c = open(self.config, 'r').readlines()
             self.top = int(c[1][:-1].split('\t')[1])
             self.bottom = int(c[2][:-1].split('\t')[1])
@@ -106,24 +109,47 @@ class ImageWindow:
         response = fc.run()
         if response == gtk.RESPONSE_OK:
             self.datafiles = fc.get_filenames()
-            g_directory = fc.get_current_folder()
+            g_directory = fc.get_current_folder() #set this to an attribute?
         fc.destroy()
         
     def onSave(self, event):
         #maybe there should be an overwrite warning???
         #if (os.path.isfile(self.config)):
         model = self.machineCBox.get_model()
+        #self.machineCBox.set_active(-1)
         index = self.machineCBox.get_active()
-        machine = model[index][0]    
-        
-        o = open(self.config, 'w')
-        o.write('machine\t%s\n' % machine)
-        o.write('top\t%s\n' % self.topentry.get_text())
-        o.write('bottom\t%s\n' % self.bottomentry.get_text())
-        o.write('left\t%s\n' % self.leftentry.get_text())
-        o.write('right\t%s\n' % self.rightentry.get_text())
-        o.close()
-                    
+        machine = model[index][0] 
+        fc = gtk.FileChooserDialog(title='Save RoI Config File', parent=None, 
+            action=gtk.FILE_CHOOSER_ACTION_SAVE, 
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
+            gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        fc.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        g_directory = fc.get_current_folder() if fc.get_current_folder() else os.path.expanduser("~")
+        fc.set_current_folder(g_directory)
+        fc.set_default_response(gtk.RESPONSE_OK)
+        fc.set_select_multiple(False)
+        response = fc.run()
+        if response == gtk.RESPONSE_OK:
+            g_directory = fc.get_current_folder()
+            savename = os.path.join(g_directory, self.config)
+            o = open(savename, 'w')
+            o.write('machine\t%s\n' % machine)
+            o.write('top\t%s\n' % self.topentry.get_text())
+            o.write('bottom\t%s\n' % self.bottomentry.get_text())
+            o.write('left\t%s\n' % self.leftentry.get_text())
+            o.write('right\t%s\n' % self.rightentry.get_text())
+            o.close()
+            dialog = gtk.MessageDialog(parent=None, type=gtk.MESSAGE_INFO, 
+                buttons=gtk.BUTTONS_CLOSE, message_format="{roi_config} saved to {path}".format(roi_config=self.config, path=g_directory))
+            dialog.set_title("Save confirmation")
+        dialog.add_button("Exit Program", 100)
+        response = dialog.run()
+        if response == 100:
+            gtk.main_quit()
+        else:
+            dialog.destroy()
+            fc.destroy()
+
     def onReset(self, event):
         self.reset()
         
@@ -154,7 +180,7 @@ class ImageWindow:
     def canvas_event(self, widget, event):
         if (event.type == gtk.gdk.MOTION_NOTIFY):
             context_id = self.statusbar.get_context_id("mouse motion")
-            text = "(" + str(int(event.x)) + ", " + str(int(event.y)) + ")"
+            text = "({x},{y})".format(x=int(event.x), y=int(event.y))
             self.statusbar.push(context_id, text)  
             if (self.DRAG):
                 self.rubberband.set(x2=event.x, y2=event.y)

@@ -201,7 +201,8 @@
               <widget class="GtkComboBox" id="combobox1">
                 <property name="visible">True</property>
                 <property name="items" translatable="yes">Sonosite Titan
-Toshiba</property>
+Toshiba 
+UNKNOWN</property>
               </widget>
               <packing>
                 <property name="pack_type">end</property>
