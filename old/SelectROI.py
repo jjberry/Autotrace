@@ -3,6 +3,7 @@
 '''
 SelectROI.py
 Written by Jeff Berry 18 Feb 2011
+Modified by Gus Hahn-Powell 21 Feb 2014
 
 purpose:
     This script is designed to help the user select a region of interest
@@ -116,22 +117,24 @@ class ImageWindow:
         #maybe there should be an overwrite warning???
         #if (os.path.isfile(self.config)):
         model = self.machineCBox.get_model()
-        #self.machineCBox.set_active(-1)
         index = self.machineCBox.get_active()
         machine = model[index][0] 
         fc = gtk.FileChooserDialog(title='Save RoI Config File', parent=None, 
             action=gtk.FILE_CHOOSER_ACTION_SAVE, 
             buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-        fc.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        fc.set_current_name(self.config) #sets a suggested filename
         g_directory = fc.get_current_folder() if fc.get_current_folder() else os.path.expanduser("~")
         fc.set_current_folder(g_directory)
         fc.set_default_response(gtk.RESPONSE_OK)
         fc.set_select_multiple(False)
+        fc.set_do_overwrite_confirmation(True)
         response = fc.run()
+        if response == gtk.RESPONSE_CANCEL:
+            fc.destroy()
         if response == gtk.RESPONSE_OK:
-            g_directory = fc.get_current_folder()
-            savename = os.path.join(g_directory, self.config)
+            savename = fc.get_filename()
+            f_path, f_name = os.path.split(savename)
             o = open(savename, 'w')
             o.write('machine\t%s\n' % machine)
             o.write('top\t%s\n' % self.topentry.get_text())
@@ -140,9 +143,9 @@ class ImageWindow:
             o.write('right\t%s\n' % self.rightentry.get_text())
             o.close()
             dialog = gtk.MessageDialog(parent=None, type=gtk.MESSAGE_INFO, 
-                buttons=gtk.BUTTONS_CLOSE, message_format="{roi_config} saved to {path}".format(roi_config=self.config, path=g_directory))
+                buttons=gtk.BUTTONS_CLOSE, message_format="{roi_config} saved to {path}".format(roi_config=f_name, path=f_path))
             dialog.set_title("Save confirmation")
-        dialog.add_button("Exit Program", 100)
+        dialog.add_button("Exit Program", 100) #100 is an arbitrary choice...
         response = dialog.run()
         if response == 100:
             gtk.main_quit()
