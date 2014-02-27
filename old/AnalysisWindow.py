@@ -344,7 +344,7 @@ class AnalysisWindow:
                 action=gtk.FILE_CHOOSER_ACTION_SAVE, 
                 buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
                 gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-            g_directory = fc.get_current_folder()
+            g_directory = fc.get_current_folder() if fc.get_current_folder() else os.path.expanduser("~")
             fc.set_current_folder(g_directory)
             fc.set_default_response(gtk.RESPONSE_OK)
             fc.set_select_multiple(False)

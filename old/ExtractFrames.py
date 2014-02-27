@@ -63,7 +63,7 @@ class Extract:
             action=gtk.FILE_CHOOSER_ACTION_OPEN, 
             buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-        g_directory = fc.get_current_folder()
+        g_directory = fc.get_current_folder() if fc.get_current_folder() else os.path.expanduser("~")
         fc.set_current_folder(g_directory)
         fc.set_default_response(gtk.RESPONSE_OK)
         fc.set_select_multiple(False)
@@ -104,7 +104,7 @@ class Extract:
             action=gtk.FILE_CHOOSER_ACTION_OPEN, 
             buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-        g_directory = fc.get_current_folder()
+        g_directory = fc.get_current_folder() if fc.get_current_folder() else os.path.expanduser("~")
         fc.set_current_folder(g_directory)
         fc.set_default_response(gtk.RESPONSE_OK)
         fc.set_select_multiple(False)
@@ -204,30 +204,37 @@ class Extract:
         return t 
 
     def extract(self):
+        #jpgdir = os.path.join(self.outputpath, "PNG")
         jpgdir = self.outputpath + 'PNG/'
         if not os.path.isdir(jpgdir):
             os.mkdir(jpgdir)
+        #wavdir = os.path.join(self.outputpath, "WAV")
         wavdir = self.outputpath + 'WAV/'
         if not os.path.isdir(wavdir):
             os.mkdir(wavdir)
         
         for i in self.outputnames:
+            #outname = os.path.join(self.outputpath, "PNG", i.split('/')[-1][:-4] + "_%6d.png")
             outname = self.outputpath + 'PNG/' + i.split('/')[-1][:-4] + '_%6d.png'
             cmd = ['ffmpeg', '-i', i, '-f', 'image2', outname]
             p = subprocess.Popen(cmd)
             p.wait()
+            #wavname = os.path.join(self.outputpath, 'WAV', i.split('/')[-1][:-4] + 'wav')
             wavname = self.outputpath + 'WAV/' + i.split('/')[-1][:-4] + '.wav'
             cmd = ['ffmpeg', '-i', i, '-vn', '-acodec', 'copy', wavname]
             p2 = subprocess.Popen(cmd)
             p2.wait()
 
     def png2jpg(self):
+        #jpgdir = os.path.join(self.outputpath, "JPG")
         jpgdir = self.outputpath + 'JPG/'
         if not os.path.isdir(jpgdir):
             os.mkdir(jpgdir)
         pngs = os.listdir(self.outputpath+'PNG/')
         for i in pngs:
+            #jpgname = os.path.join(jpgdir, i[:-4], '.jpg')
             jpgname = jpgdir + i[:-4] + '.jpg'
+            #cmd = ['convert', os.path.join(self.outputpath, "PNG", i), jpgname]
             cmd = ['convert', self.outputpath+'PNG/'+i, jpgname]
             print ' '.join(cmd)
             p = subprocess.Popen(cmd)
