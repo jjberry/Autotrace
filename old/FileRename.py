@@ -23,8 +23,7 @@ import re
 import gtk
 import gtk.glade
 
-#frame_number_pattern = re.compile("frame-|_([0-9]+)\.png|\.jpg", re.IGNORECASE)
-frame_number_pattern = re.compile("(?<=frame-)|(?<=_)([0-9]+)(?=\.png|\.jpg)", re.IGNORECASE) #also handles older naming conventions...
+frame_number_pattern = re.compile("(frame-|_)([0-9]+)\.png|\.jpg", re.IGNORECASE) #also handles older naming conventions...
 image_extension_pattern = re.compile("(\.(png|jpg))", re.IGNORECASE)
 tracer_pattern = re.compile("([a-z0-9]+)\.traced", re.IGNORECASE) #some tracers use a number...not jsut initials...
 class FileRename:
@@ -96,7 +95,7 @@ class FileRename:
     def onOK(self, event):
         studycode = self.studycodeentry.get_text() 
         subjnum = self.subjnumentry.get_text() 
-        item = self.tracerentry.get_text()
+        item = self.tracerentry.get_text() if self.tracerentry.get_text() else "??"
         tracer = self.tracerentry.get_text()
         logfile = open(self.dstpath+'log.txt', 'w')
         for i in self.srcfilelist:
@@ -104,9 +103,13 @@ class FileRename:
             image_extension = re.search(image_extension_pattern, shortname).group(1).lower() #lowercase image extension
             extension = "traced.txt" if "traced.txt" in shortname else image_extension
             print "shortname: {0}\textension: {1}".format(shortname, extension) #debug
-            itemname = shortname.split('_')[2] if (shortname.count("_") >= 3) else "??"
-            framenumber = shortname.split('_')[3] + extension if (shortname.count("_") >= 3) else re.search(frame_number_pattern, shortname).group(1)
+            itemname = shortname.split('_')[2] if (shortname.count("_") >= 3) else item
+            framenumber = shortname.split('_')[3] + extension if (shortname.count("_") >= 3) else re.search(frame_number_pattern, shortname).group(2)
             #make basic filename and image name...
+            print "studycode: {0}".format(studycode) #debug
+            print "subjnum: {0}".format(subjnum) #debug
+            print "itemname: {0}".format(itemname) #debug
+            print "framenumber: {0}".format(framenumber) #debug
             f_basename = str(studycode) + "_" + str(subjnum) + "_" + itemname + "_" + framenumber
             image_name = f_basename + image_extension
             #see if this is a trace file...
