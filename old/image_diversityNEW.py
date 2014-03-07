@@ -108,19 +108,24 @@ class ImageWindow:
 		self.test_least = self.wTree.get_widget("test_least")
 
 		self.remaining = self.wTree.get_widget("remaining")
+		self.batches = self.wTree.get_widget("batches")
+		#assign 0 if not coercible to type int...
+		self.safe_set_all()
 
 		self.train_most.connect("changed", self.update_remaining)
 		self.train_least.connect("changed", self.update_remaining)
 		self.test_most.connect("changed", self.update_remaining)
 		self.test_least.connect("changed", self.update_remaining)
+		self.batches.connect("changed", self.update_remaining)
 
-		self.batches = self.wTree.get_widget("batches")
+		
 		
 		self.images = []
 		self.traces = []
 		#set default text
 		#self.itementry.set_text("??")
 		self.n = len(self.images)
+		self.remaining.set_text(str(self.n))
 		self.update_remaining()
 		#self.makeDest()
 		self.get_tracenames()
@@ -154,7 +159,29 @@ class ImageWindow:
 		
 		self.onOK()
 	"""
+	def safe_set(self, entry, value=""):
+		"""
+		Make sure entered text is coercible to type int
+		"""
+		try:
+			int(entry.get_text())
+		except:
+			entry.set_text(value)		
 
+	def safe_set_all(self, value=""):
+		entries = [self.train_most, self.train_least, self.test_most, self.test_least, self.remaining, self.batches]
+		for entry in entries:
+			try:
+				int(entry.get_text())
+			except:
+				entry.set_text(value)
+
+	def safe_get(self, entry):
+		try:
+			return int(entry.get_text())
+		except:
+			return 0
+		
 	def openSource(self, event):
 		fc = gtk.FileChooserDialog(title='Select Data', parent=None, 
 			action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
@@ -170,6 +197,8 @@ class ImageWindow:
 			self.srcfileentry.set_text(g_directory)
 			self.images = [os.path.join(g_directory, f) for f in os.listdir(g_directory) if re.search(image_extension_pattern, f)]
 			self.traces = [os.path.join(g_directory, f) for f in os.listdir(g_directory) if "traced.txt" in f]
+			self.n = len(self.images)
+			self.update_remaining()
 		fc.destroy()
 		
 	def openDest(self, event):
@@ -211,24 +240,31 @@ class ImageWindow:
 		for training and test sets, given user's
 		input
 		"""
+		self.safe_set_all()
+
 		#need to safely get a value or assign zero if nothing
 		self.check_remaining()
-		self.remaining.set_text(str(self.n - int(self.train_most.get_text()) - int(self.train_least.get_text())))
 
-		#[self.train_most, self.train_least, self.test_most, self.test_least]
+		print "remaining: {0}".format(self.remaining.get_text())
+		self.remaining.set_text(str(self.n - self.safe_get(self.train_most) - self.safe_get(self.train_least)))
+		#make sure we don't have more batches than remaining...
+		if self.safe_get(self.batches) > self.safe_get(self.remaining):
+			self.batches.set_text(str(self.remaining))
 
 	def check_remaining(self):
 		#test values come out of training numbers, not overall pool
 		#rest test_most if value exceeds possible
-		if int(self.test_most.get_text()) > int(self.train_most.get_text()):
-			self.test_most.set_text(str(0))
-		if int(self.test_least.get_text()) > int(self.train_least.get_text()):
-			self.test_least.set_text(str(0))
+		self.safe_set_all()
+
+		if self.safe_get(self.test_most) > self.safe_get(self.train_most):
+			self.test_most.set_text("")
+		if self.safe_get(self.test_least) > self.safe_get(self.train_least):
+			self.test_least.set_text("")
 
 		#did we try to pick too many items?
-		if int(self.train_most.get_text()) + int(self.train_least.get_text()) > self.n:
-			self.train_most.set_text(str(0))
-			self.train_least.set_text(str(0))
+		if self.safe_get(self.train_most) + self.safe_get(self.train_least) > self.n:
+			self.train_most.set_text("")
+			self.train_least.set_text("")
 	"""
 	def get_average_image(self):
 		files = self.images        
