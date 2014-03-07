@@ -21,7 +21,6 @@ function [xs, ys, worst] = AutoTracer(directory, roi, networkfile)
 	addpath('NeuralNets/')
 	load(networkfile);
 	
-	%files = dir(fullfile(directory, '*.jpg'));
   %Gus: changed to support multiple image formats
   files = [ dir(fullfile(directory, '*.jpg')) ; dir(fullfile(directory, '*.png'))];
 	

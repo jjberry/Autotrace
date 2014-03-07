@@ -5,7 +5,7 @@ function [XC, m, s, height, width, continds] = combineUltrasoundAndContourImages
   left = roi(3);
   right = roi(4)
 
-  directory = fullfile(datadir,['Subject' num2str(id(1))], 'JPG')  
+  directory = fullfile(datadir,['Subject' num2str(id(1))], 'IMAGES')  
   % Read one image to see what the final size will be when we resize it
   scale = 0.1;
   img = imread( fullfile(directory, contfiles{1}) );
@@ -25,7 +25,7 @@ function [XC, m, s, height, width, continds] = combineUltrasoundAndContourImages
   XC = zeros(numconts,height*width + length(continds));
   for j = 1:numconts
       % For all images with a contour, load and crop and grayscale the image
-      directory = fullfile(datadir,['Subject' num2str(id(j))], 'JPG');
+      directory = fullfile(datadir,['Subject' num2str(id(j))], 'IMAGES');
       img = imread( fullfile(directory,contfiles{j}) );
       cropped = double(imresize(rgb2gray(img(top:bottom,left:right,:)),scale,'bicubic'));
 
