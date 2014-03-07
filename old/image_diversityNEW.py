@@ -93,7 +93,7 @@ class ImageWindow:
 		self.win.set_title("Image Diversity")
 		
 		dic = { "on_window1_destroy" : gtk.main_quit,
-				"on_open1_clicked" : self.openSource,
+				"on_open1_clicked" : self.openImages,
 				"on_open2_clicked" : self.openDest,
 				"on_ok_clicked" : self.onOK}
 		self.wTree.signal_autoconnect(dic)
@@ -122,6 +122,7 @@ class ImageWindow:
 		
 		self.images = []
 		self.traces = []
+
 		#set default text
 		#self.itementry.set_text("??")
 		self.n = len(self.images)
@@ -181,26 +182,52 @@ class ImageWindow:
 			return int(entry.get_text())
 		except:
 			return 0
-		
-	def openSource(self, event):
-		fc = gtk.FileChooserDialog(title='Select Data', parent=None, 
-			action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-			#action=gtk.FILE_CHOOSER_ACTION_OPEN, 
+
+	def openImages(self, event):
+		fc = gtk.FileChooserDialog(title='Select Image Files', parent=None, 
+			action=gtk.FILE_CHOOSER_ACTION_OPEN, 
 			buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
 			gtk.STOCK_OPEN, gtk.RESPONSE_OK))
 		g_directory = fc.get_current_folder() if fc.get_current_folder() else os.path.expanduser("~")
 		fc.set_current_folder(g_directory)
 		fc.set_default_response(gtk.RESPONSE_OK)
+		fc.set_select_multiple(True)
+		ffilter = gtk.FileFilter()
+		ffilter.set_name('Image Files')
+		ffilter.add_pattern('*.jpg')
+		ffilter.add_pattern('*.png')
+		fc.add_filter(ffilter)
 		response = fc.run()
 		if response == gtk.RESPONSE_OK:
-			g_directory = fc.get_current_folder()
-			self.srcfileentry.set_text(g_directory)
-			self.images = [os.path.join(g_directory, f) for f in os.listdir(g_directory) if re.search(image_extension_pattern, f)]
-			self.traces = [os.path.join(g_directory, f) for f in os.listdir(g_directory) if "traced.txt" in f]
+			self.images_dir = fc.get_current_folder() #set this to an attribute?
+			self.images = [os.path.join(self.images_dir, f) for f in fc.get_filenames() if re.search(image_extension_pattern, f)]
 			self.n = len(self.images)
 			self.update_remaining()
+			self.srcfileentry.set_text(self.images_dir)
 		fc.destroy()
-		
+		self.openTraces()
+
+	def openTraces(self):
+		fc = gtk.FileChooserDialog(title='Select Trace Files', parent=None, 
+			action=gtk.FILE_CHOOSER_ACTION_OPEN, 
+			buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
+			gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+		g_directory = fc.get_current_folder() if fc.get_current_folder() else self.images_dir
+		fc.set_current_folder(g_directory)
+		fc.set_default_response(gtk.RESPONSE_OK)
+		fc.set_select_multiple(True)
+		ffilter = gtk.FileFilter()
+		ffilter.set_name('Trace Files')
+		ffilter.add_pattern('*.traced.txt')
+		fc.add_filter(ffilter)
+		response = fc.run()
+		if response == gtk.RESPONSE_OK:
+			self.traces_dir = fc.get_current_folder() #set this to an attribute?
+			#should probably filter traces here (make sure images and traces match)
+			self.traces = [os.path.join(self.images_dir, f) for f in fc.get_filenames() if "traced.txt" in f]
+			print "{0} traces found".format(len(self.traces))
+		fc.destroy()
+
 	def openDest(self, event):
 		fc = gtk.FileChooserDialog(title='Select Save Destination', parent=None, 
 			action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER, 
