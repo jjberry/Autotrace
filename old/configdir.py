@@ -3,6 +3,7 @@
 '''
 configdir.py
 Written by Jeff Berry on Jan 11 2011
+Modified by Gus Hahn-Powell on March 6 2014
 
 purpose:
     This script arranges training data into the directory
@@ -11,7 +12,7 @@ purpose:
 usage:
     python configdir.py
     
-    This file should be placed in the directory with the .jpg
+    This file should be placed in the directory with the .jpg/.png
     and corresponding .traced.txt files, as well as ROI_config.txt.
     Running this script produces the directories Subject1/, traces/
     and Subject1/JPG/, as well as TongueContours.csv. ROI_config.txt
@@ -24,6 +25,10 @@ reason:
 '''
 
 import os, subprocess
+import re
+
+
+image_extension_pattern = re.compile("\.(jpg|png)$", re.IGNORECASE)
 
 def formatAutoTrace():
     filename = 'Subject1/TongueContours.csv'
@@ -66,7 +71,7 @@ def formatAutoTrace():
     
 def configdir():
     if not os.path.isdir('Subject1'):
-        os.makedirs('Subject1/JPG/')
+        os.makedirs('Subject1/IMAGES/')
         os.mkdir('traces')
 	
     formatAutoTrace()
@@ -80,8 +85,8 @@ def configdir():
             p = subprocess.Popen(cmd)
             p.wait()
             tracecount += 1
-        elif '.jpg' in i:
-            cmd = ['mv', i, 'Subject1/JPG']
+        elif re.search(image_extension_pattern, i):
+            cmd = ['mv', i, 'Subject1/IMAGES']
             p = subprocess.Popen(cmd)
             p.wait()
             jpgcount += 1
