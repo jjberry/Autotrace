@@ -41,7 +41,7 @@ function [result, smallcx, smallcy, largecx, largecy] = reconstructContours(data
 
     % Show the contour on top of the original image
     figure(4)
-    filename = fullfile(datadir,['Subject' num2str(subjid(i))], 'JPG',contfiles{i});
+    filename = fullfile(datadir,['Subject' num2str(subjid(i))], 'IMAGES',contfiles{i});
     img = imread( filename );
     subplot(2,1,1)
     imshowtrue(img);
