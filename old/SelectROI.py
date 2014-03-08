@@ -114,8 +114,6 @@ class ImageWindow:
 		fc.destroy()
 		
 	def onSave(self, event):
-		#maybe there should be an overwrite warning???
-		#if (os.path.isfile(self.config)):
 		model = self.machineCBox.get_model()
 		index = self.machineCBox.get_active()
 		machine = model[index][0] 
