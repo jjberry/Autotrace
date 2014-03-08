@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-'''
-image_diversity.py
-Written by Jeff Berry on Dec 21 2010
+"""
+image_diversityNEW.py
+Rewritten by Gus Hahn-Powell on March 7 2014
+based on ~2010 code by Jeff Berry
 
 purpose:
 	This script measures the distance from average for each image in the
@@ -12,56 +13,28 @@ purpose:
 	do the measurement. If not present, it will use a hard-coded default ROI.
 
 usage:
-	python image_diversity.py <num_images> <num_testset> <num_batches>
-	
-parameters:
-	<num_images>: The number of images to use in the diverse set. This number
-			represents the most diverse images. The script will automatically 
-			add the 50 least diverse images to the set.
-	<num_testset>: The number of images to save out of the diverse set as a 
-			test set. These images will be stored in 'diverse-test'.
-	<num_batches>: The number of groups to organize the remaining images into
-			
-example:
-	python image_diversity.py 300 100 5
-	#This command will result in 250 images in 'diverse' and 100 test images
-	#in 'diverse-test'. The remaining images will be split into 5 groups in
-	#'batch1', 'batch2', etc.
-	
----------------------------------------------
-Modified by Jeff Berry on Feb 18 2011
-reason:
-	Updated the script to use ROI_config.txt. This made the initial ROI selection
-	window unnecessary. ROI is now selected using SelectROI.py
----------------------------------------------
-Modified by Jeff Berry on Feb 25 2011
-reason:
-	added support for unique tracer codes on .traced.txt files
----------------------------------------------
-Modified by Jeff Berry on Jan 26 2012
-reason:
-	added support for splitting diverse images into train and test sets. The script
-	is no longer interactive due to problems with the raw_input() function interacting 
-	with GTK. Instead, the numbers of train and test images are passed to the script
-	as arguments (see usage above). 
-'''
+	python image_diversity.py			
+"""
 
 import cv
 import re
+import shutil
 import os, sys
 import operator
-import subprocess
 from numpy import *
+from collections import defaultdict
+import subprocess as sp
+import multiprocessing as mp
 import matplotlib.pyplot as plot
 import gtk
 import gtk.glade
-import multiprocessing
 
-CopyQueue = multiprocessing.Queue()
-FinishQueue = multiprocessing.Queue()
+
 
 image_extension_pattern = re.compile("(\.(png|jpg)$)", re.IGNORECASE)
 
+'''
+#change this to make use of multiprocessing.pool?
 class CopyThread(multiprocessing.Process):        
 	def run(self):
 		flag = 'ok'
@@ -71,10 +44,11 @@ class CopyThread(multiprocessing.Process):
 				flag = 'stop'
 			else:
 				#print ' '.join(cmd)
-				p = subprocess.Popen(cmd)
+				p = sp.Popen(cmd)
 				p.wait()
 				FinishQueue.put(cmd)
 		#print "CopyThread stopped"
+'''
 
 class ImageWindow:
 	'''This file renamer expects the format of the source files to be <name>_<frame>.jpg
@@ -100,6 +74,8 @@ class ImageWindow:
 	
 		self.srcfileentry = self.wTree.get_widget("srcfileentry")
 		self.dstfileentry = self.wTree.get_widget("dstfileentry")
+		#initialized to None...
+		self.destpath = None
 		
 		self.train_most = self.wTree.get_widget("train_most") #Select N images
 		self.train_least = self.wTree.get_widget("train_least") #Select n test?
@@ -118,28 +94,31 @@ class ImageWindow:
 		self.test_least.connect("changed", self.update_remaining)
 		self.batches.connect("changed", self.update_remaining)
 
-		
-		
 		self.images = []
 		self.traces = []
 
-		#set default text
-		#self.itementry.set_text("??")
+		self.images_dir = None
+		self.traces_dir = None
+
 		self.n = len(self.images)
 		self.remaining.set_text(str(self.n))
 		self.update_remaining()
-		#self.makeDest()
-		self.get_tracenames()
-	"""
+	
+	def get_roi(self):
+		"""
+		Get Region of Interest (RoI) for selected images
+		"""
 		# get an image and open it to see the size
 		img = cv.LoadImageM(self.images[0], iscolor=False)
 		self.csize = shape(img)
 		self.img = asarray(img)
 		
 		#open up the ROI_config.txt and parse
-		self.pathtofiles = '/'.join(self.images[0].split('/')[:-1]) + '/'
-		self.config = self.pathtofiles + 'ROI_config.txt'
-		if (os.path.isfile(self.config)):
+		print "images_dir: {0}".format(self.images_dir)
+		#see if the ROI_config.txt file exists at the specified directory...should we instead launch SelectROI.py?
+		self.config = os.path.join(self.images_dir,'ROI_config.txt') if os.path.exists(os.path.join(self.images_dir,'ROI_config.txt')) else None
+		print "self.config: {0}".format(self.config)
+		if self.config:
 			print "Found ROI_config.txt"
 			c = open(self.config, 'r').readlines()
 			self.top = int(c[1][:-1].split('\t')[1])
@@ -158,8 +137,6 @@ class ImageWindow:
 		roi = img[self.top:self.bottom, self.left:self.right]
 		self.roisize = shape(roi)
 		
-		self.onOK()
-	"""
 	def safe_set(self, entry, value=""):
 		"""
 		Make sure entered text is coercible to type int
@@ -178,12 +155,19 @@ class ImageWindow:
 				entry.set_text(value)
 
 	def safe_get(self, entry):
+		"""
+		Safely return an int (default is 0)
+		from a specified entry
+		"""
 		try:
 			return int(entry.get_text())
 		except:
 			return 0
 
 	def openImages(self, event):
+		"""
+		Allows user to select multiple images (jpg or png)
+		"""
 		fc = gtk.FileChooserDialog(title='Select Image Files', parent=None, 
 			action=gtk.FILE_CHOOSER_ACTION_OPEN, 
 			buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
@@ -201,13 +185,19 @@ class ImageWindow:
 		if response == gtk.RESPONSE_OK:
 			self.images_dir = fc.get_current_folder() #set this to an attribute?
 			self.images = [os.path.join(self.images_dir, f) for f in fc.get_filenames() if re.search(image_extension_pattern, f)]
+			print "{0} images found".format(len(self.images))
+			print "images: {0}".format("\n".join(self.images))
 			self.n = len(self.images)
 			self.update_remaining()
 			self.srcfileentry.set_text(self.images_dir)
 		fc.destroy()
+		self.get_roi()
 		self.openTraces()
 
 	def openTraces(self):
+		"""
+		Allows user to select multiple trace files (traced.txt)
+		"""
 		fc = gtk.FileChooserDialog(title='Select Trace Files', parent=None, 
 			action=gtk.FILE_CHOOSER_ACTION_OPEN, 
 			buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
@@ -226,7 +216,9 @@ class ImageWindow:
 			#should probably filter traces here (make sure images and traces match)
 			self.traces = [os.path.join(self.images_dir, f) for f in fc.get_filenames() if "traced.txt" in f]
 			print "{0} traces found".format(len(self.traces))
+			print "traces: {0}".format("\n".join(self.traces))
 		fc.destroy()
+		self.get_tracenames()
 
 	def openDest(self, event):
 		fc = gtk.FileChooserDialog(title='Select Save Destination', parent=None, 
@@ -238,28 +230,34 @@ class ImageWindow:
 		fc.set_default_response(gtk.RESPONSE_OK)
 		response = fc.run()
 		if response == gtk.RESPONSE_OK:
-			self.dstpath = fc.get_current_folder() + '/'
-			self.dstfileentry.set_text(self.dstpath)
+			self.destpath = fc.get_current_folder()
+			self.dstfileentry.set_text(self.destpath)
 		fc.destroy()  
-	"""
+
 	def makeDest(self):
-		s = self.images[0].split('/')
-		self.rootdir = '/'.join(s[:-1]) + '/'
-		self.destpath = '/'.join(s[:-1]) + '/diverse/'
-		print "images will be saved in", self.destpath
-		if not os.path.isdir(self.destpath):
-			os.mkdir(self.destpath)
-			print "created directory", self.destpath
-	"""
+		#TODO: add this into openDest?
+		diverse_dir = os.path.join(self.destpath, "diverse")
+		print "images will be saved in", diverse_dir
+		if not os.path.isdir(diverse_dir):
+			os.mkdir(diverse_dir)
+			print "created directory", diverse_dir
+
 	def get_tracenames(self):
-		'''This method will look for existing trace files and create a dictionary to corresponding
+		"""
+		This method will look for existing trace files and create a dictionary to corresponding
 		image files. It will only work if all image files are in the same directory
-		'''
-		self.tracenames = {}
-		for i in self.images:
-			for j in self.traces:
-				if i in j:
-					self.tracenames[i] = j
+		"""
+		#3/8/2014 (Gus): Changed to support multiple corresponding traces...
+		self.tracenames = defaultdict(list)
+		for image in self.images:
+			#get image name...
+			image_name = os.path.basename(image)
+			for trace in self.traces:
+				#get trace name...
+				trace_name = os.path.basename(trace)
+				if image_name in trace_name:
+					print "image: {0}\ttrace: {1}".format(image_name, trace_name)
+					self.tracenames[image].append(trace)
 
 	def update_remaining(self, *args):
 		"""
@@ -292,8 +290,12 @@ class ImageWindow:
 		if self.safe_get(self.train_most) + self.safe_get(self.train_least) > self.n:
 			self.train_most.set_text("")
 			self.train_least.set_text("")
-	"""
+
 	def get_average_image(self):
+		"""
+		creates an average image from 
+		a set of images and a corresponding RoI
+		"""
 		files = self.images        
 		ave_img = zeros(self.roisize)
 		for i in range(len(files)):
@@ -305,20 +307,25 @@ class ImageWindow:
 	
 		return ave_img, files
 	
-	def get_diverse(self, n, n_test, n_batches, add_lower50='y', make_testset='y'):
-		'''gets the n most diverse images from the data set and copies them into path_to_save'''
+	def get_diverse(self):
+		"""
+		gets the n most diverse images from the data 
+		set and copies them into path_to_save
+		"""
+		batches = self.safe_get(self.batches)
+
 		if os.path.isdir(self.destpath):
-			print "calculating average image"
+			print "calculating average image..."
 			ave_img, files = self.get_average_image()
 		
-			print "measuring distances from average"
+			print "measuring distances from average..."
 			results = {}
-			for i in range(len(files)):
-				img = cv.LoadImageM(files[i], iscolor=False)
+			for i in range(len(self.images)):
+				img = cv.LoadImageM(self.images[i], iscolor=False)
 				roi = img[self.top:self.bottom, self.left:self.right]
 				roi = asarray(roi)/255.
 				dif_img = abs(roi - ave_img)
-				results[files[i]] = sum(sum(dif_img))
+				results[self.images[i]] = sum(sum(dif_img))
 		
 			sorted_results = sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)
 
@@ -328,139 +335,156 @@ class ImageWindow:
 				plot.plot(count, j, 'b.')
 				count += 1
 			#add confirmation dialog that prompts for save location when ok is clicked
-			plot.savefig(self.destpath+'rankVenergy.png')
-			#plot.show()
-			
-			#cmd = ['open', self.destpath+'rankVenergy.png']
-			#p = subprocess.Popen(cmd)
-
-			#n = int(raw_input("Enter number of images to move: "))
-			#print n # for some reason, these raw_input calls don't work anymore
-		
-			#add_lower50 = raw_input("Should I also add the 50 least different images? [Y/n]: ")
-		
-			#make_testset = raw_input("Should I save out some images as a test set? [Y/n]: ")
-			if (make_testset == '') or (make_testset.lower() == 'y'):
-				TESTSET = True
-				#n_test = int(raw_input("Enter the number of test images to save out: "))
-				self.testdir = self.destpath[:-1]+'-test/'
-				if not os.path.isdir(self.testdir):
-					os.mkdir(self.testdir)
-			else:
-				TESTSET = False
-				#n_test = 0
-			
-			numThreads = 4
-			for i in range(numThreads):
-				thread = CopyThread()
-				thread.start()
+			#plot.savefig(os.path.join(self.destpath, 'rankVenergy.png'))
+			plot.title("rank vs. energy plot for {0} images".format(count))
+			plot.ylabel('Diversity score')
+			plot.xlabel('Rank')
+			#remove x axis ticks
+			#plot.tick_params(axis='x', which='both', bottom='off', top='off', labelbottom='off')
+			plot.show()
 			
 			filenames = []
-			for (i,j) in sorted_results[:n]:
+			for (i,j) in sorted_results:
 				filenames.append(i)
 
-			if (add_lower50 == '') or (add_lower50.lower() == 'y'):
-				for (i,j) in sorted_results[-50:]:
-					filenames.append(i)
-			filenames = array(filenames)    
-			if TESTSET:
-				inds = arange(len(filenames))    
-				random.shuffle(inds)
-				testinds = inds[:n_test]
-				traininds = inds[n_test:]
-				trainfiles = filenames[traininds]
-				testfiles = filenames[testinds]
-			else:
-				trainfiles = filenames
+			most_diverse = self.safe_get(self.train_most)
+			least_diverse = self.safe_get(self.train_least)
 			
-			count = 0   
-			print "saving most diverse images to:", self.destpath
-			for i in trainfiles:
-				fname = i.split('/')[-1]
-				cmd = ['mv', i, self.destpath+fname]
-				#print count
-				count += 1
-				CopyQueue.put(cmd)
-				if self.tracenames.has_key(i):
-					cmd2 = ['mv', self.tracenames[i], self.destpath]
-					count += 1
-					CopyQueue.put(cmd2)
-					
-			if TESTSET:
-				for i in testfiles:
-					fname = i.split('/')[-1]
-					cmd = ['mv', i, self.testdir+fname]
-					CopyQueue.put(cmd)
-					#print count
-					count += 1
-					if self.tracenames.has_key(i):
-						cmd2 = ['mv', self.tracenames[i], self.testdir]
-						count += 1
-						CopyQueue.put(cmd2)
-				 
-			remaining = []
-			for (i,j) in sorted_results[n:-50]:
-				remaining.append(i)
-			remaining = array(remaining)
-			inds = arange(len(remaining))
-			random.shuffle(inds)
-			breaks = linspace(0, len(remaining), n_batches+1).astype(integer)
-			for i in range(n_batches):
-				batch_inds = inds[breaks[i]:breaks[i+1]]
-				batch_files = remaining[batch_inds]
-				batch_dir = "batch%03d" % (i+1)
-				dest = os.path.join(self.rootdir, batch_dir)
-				if not os.path.isdir(dest):
-					os.mkdir(dest)
-				for j in batch_files:
-					fname = j.split('/')[-1]   
-					cmd = ['mv', j, os.path.join(dest, fname)]
-					count += 1
-					CopyQueue.put(cmd)
-					if self.tracenames.has_key(j):
-						cmd2 = ['mv', self.tracenames[j], dest]
-						count += 1
-						CopyQueue.put(cmd2)
+			test_least_diverse = self.safe_get(self.test_least)
+			test_most_diverse = self.safe_get(self.test_most)
+			
+			test_size = test_least_diverse + test_most_diverse
+			#remove test size from training size...
+			train_size = most_diverse + least_diverse - test_size
+			
+			#do we want any least diverse?
+			if least_diverse > 0:
+				#take the specified n least diverse...
+				for (i,j) in sorted_results[-1*least_diverse:]:
+					filenames.append(i)
+			
 
-			# stop the threads
-			for i in range(numThreads):               
-				CopyQueue.put(None)               
+			filenames = array(filenames) 
+			inds = arange(len(filenames))  
+			random.shuffle(inds)
+
+			traininds = inds[:train_size]
+			trainfiles = filenames[traininds] 
+			
+			#are we generating a test set?
+			if test_size > 0:
+				#prepare directory for test files...
+				self.testdir = os.path.join(self.destpath, "test")
+				if not os.path.isdir(self.testdir):
+					os.mkdir(self.testdir)
+				
+				#figure out which files will be assigned to test...
+				testinds = inds[train_size:train_size+test_size]
+				testfiles = filenames[testinds]
+
+				remaininginds =inds[train_size+test_size:]
+				remainingfiles = filenames[remaininginds]
+
+				#NOTE: this should be a method...
+				#move our test files...
+				for image in testfiles:
+					print "Moving test files..."
+					image_name = os.path.basename(image)
+					dest = os.path.join(self.testdir, image_name)
+					shutil.copy(image, dest)
+					count += 1
+					if image in self.tracenames:
+						#should I average the traces instead?
+						for trace in self.tracenames[image]:
+							trace_name = os.path.basename(trace)
+							dest = os.path.join(self.testdir, trace_name)
+							print "image: {0}".format(image)
+							print "trace source: {0}".format(trace)
+							print "trace dest: {0}\n".format(dest)
+							shutil.copy(trace, dest)
+							count += 1
+
+			
+			#NOTE: this should be a method...
+			#prepare directory for training files...	
+			self.traindir = os.path.join(self.destpath, "train")
+			if not os.path.isdir(self.traindir):
+				os.mkdir(self.traindir)	
+			
+			#move training files (edit this)...	
+			for image in trainfiles:
+				print "Moving training files..."
+				image_name = os.path.basename(image)
+				dest = os.path.join(self.traindir, image_name)
+				shutil.copy(image, dest)
+				count += 1
+				if image in self.tracenames:
+					for trace in self.tracenames[image]:
+						trace_name = os.path.basename(trace)
+						dest = os.path.join(self.traindir, trace_name)
+						print "image: {0}".format(image)
+						print "trace source: {0}".format(trace)
+						print "trace dest: {0}\n".format(dest)
+						shutil.copy(trace, dest)
+						count += 1
+
+			if batches > 0:				
+				b_num = 1
+				#numpy trick works here...
+				for batch_files in array_split(array(remainingfiles), batches):
+					print "files in batch set: {0}".format(len(batch_files))
+					#pad batch folder name with some zeros
+					batch_dir = "batch%03d" % (b_num)
+					batch_dir = os.path.join(self.destpath, batch_dir)
+					if not os.path.isdir(batch_dir):
+						os.mkdir(batch_dir)
+					
+					#NOTE: this should be a method...
+					for image in batch_files:
+						print "Moving batch files..."
+						image_name = os.path.basename(image)
+						dest = os.path.join(batch_dir, image_name)
+						shutil.copy(image, dest)
+						count += 1
+						if image in self.tracenames:
+							for trace in self.tracenames[image]:
+								trace_name = os.path.basename(trace)
+								dest = os.path.join(batch_dir, trace_name)
+								print "image: {0}".format(image)
+								print "trace source: {0}".format(trace)
+								print "trace dest: {0}\n".format(dest)
+								shutil.copy(trace, dest)
+								count += 1
+					b_num+=1
 
 			# write sorted_results to a .txt file for future reference
 			# added Mar 10 2011 by Jeff Berry
-			o = open(self.destpath+'SortedResults.txt', 'w')
+			o = open(os.path.join(self.destpath, 'SortedResults.txt'), 'w')
 			for (i,j) in sorted_results:
 				o.write("%s\t%.4f\n" %(i, j))
 			o.close()
-
-		for i in range(count):
-			Fcmd = FinishQueue.get()
-			print ' '.join(Fcmd)    
-
+ 
 	
 		print "done"
-		roifile = '/'.join(self.images[0].split('/')[:-1]) + '/ROI_config.txt'
+
+		#move ROI file...
+		roifile = os.path.join(self.images_dir, "ROI_config.txt")
 		if os.path.isfile(roifile):
-			p = subprocess.Popen(['cp', roifile, self.destpath])
-			p.wait()
-		#p = subprocess.Popen(['rm', self.destpath+'/rankVenergy.png'])
-		#p.wait()
+			shutil.copy(self.destpath, "ROI_config.txt")
  
-		try:    
-			gtk.main_quit() #for some reason this is not exiting gracefully
-		except RuntimeError:
-			#print "press ctrl+c to quit"
-			p1 = subprocess.Popen(['ps', '-ef'], stdout=subprocess.PIPE)
-			p2 = subprocess.Popen(['grep', '-i', 'image_diversity'], stdin=p1.stdout, stdout=subprocess.PIPE)
-			p3 = subprocess.Popen(['awk', "{print $2}"], stdin=p2.stdout, stdout=subprocess.PIPE)
-			pid = p3.communicate()[0][:-1]
-			print pid
-			p = subprocess.Popen(['kill', pid])
-	"""
+
 	def onOK(self, event):
-		#fix this to feed in the right stuff
-		self.get_diverse(n, n_test, n_batches, add_lower50, make_testset)
-		#gtk.main_quit()
+		#make sure everything seems alright...
+		if not self.destpath or not self.images or self.safe_get(self.train_most) == 0:
+			#run error dialog and return...
+			error_dialog = gtk.MessageDialog(parent=None, type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE, message_format="Some of your settings are missing...")
+			error_dialog.run()
+			error_dialog.destroy()
+			return
+
+		self.get_roi()
+		self.get_diverse()
+		gtk.main_quit()
 			
 if __name__ == "__main__":
 	ImageWindow()
