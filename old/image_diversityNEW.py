@@ -30,8 +30,12 @@ import gtk
 import gtk.glade
 
 
+log_file = os.path.join(os.getcwd(), "tmp_log")
 
 image_extension_pattern = re.compile("(\.(png|jpg)$)", re.IGNORECASE)
+
+
+
 
 '''
 #change this to make use of multiprocessing.pool?
@@ -51,15 +55,8 @@ class CopyThread(multiprocessing.Process):
 '''
 
 class ImageWindow:
-	'''This file renamer expects the format of the source files to be <name>_<frame>.jpg
-		<name> can be a combination of letters and numbers, and <frame> is numbers.
-		The program will split on the underscore, so if filenames are not in this format
-		the behavior will be unpredictable.
-	'''
-		
-	
-
-class ImageWindow:
+	"""
+	"""
 	def __init__(self):
 		gladefile = "ImageDiversity.glade"
 		self.wTree = gtk.glade.XML(gladefile, "window1")
@@ -103,7 +100,15 @@ class ImageWindow:
 		self.n = len(self.images)
 		self.remaining.set_text(str(self.n))
 		self.update_remaining()
-	
+		self.log_file = ""
+
+	def logger(self, message, log_file=log_file):
+		"""
+		logger
+		"""
+		with open(log_file, 'a') as lg:
+			lg.write("{0}\n".format(message))
+
 	def get_roi(self):
 		"""
 		Get Region of Interest (RoI) for selected images
@@ -114,25 +119,25 @@ class ImageWindow:
 		self.img = asarray(img)
 		
 		#open up the ROI_config.txt and parse
-		print "images_dir: {0}".format(self.images_dir)
+		self.logger("images_dir: {0}".format(self.images_dir))
 		#see if the ROI_config.txt file exists at the specified directory...should we instead launch SelectROI.py?
 		self.config = os.path.join(self.images_dir,'ROI_config.txt') if os.path.exists(os.path.join(self.images_dir,'ROI_config.txt')) else None
-		print "self.config: {0}".format(self.config)
+		self.logger("self.config: {0}".format(self.config))
 		if self.config:
-			print "Found ROI_config.txt"
+			self.logger("Found ROI_config.txt")
 			c = open(self.config, 'r').readlines()
 			self.top = int(c[1][:-1].split('\t')[1])
 			self.bottom = int(c[2][:-1].split('\t')[1])
 			self.left = int(c[3][:-1].split('\t')[1])
 			self.right = int(c[4][:-1].split('\t')[1])
-			print "using ROI: [%d:%d, %d:%d]" % (self.top, self.bottom, self.left, self.right)
+			self.logger("using ROI: [%d:%d, %d:%d]" % (self.top, self.bottom, self.left, self.right))
 		else:
-			print "ROI_config.txt not found"
+			self.logger("ROI_config.txt not found")
 			self.top = 140 #default settings for the Sonosite Titan
 			self.bottom = 320
 			self.left = 250
 			self.right = 580
-			print "using ROI: [%d:%d, %d:%d]" % (self.top, self.bottom, self.left, self.right)
+			self.logger("using ROI: [%d:%d, %d:%d]" % (self.top, self.bottom, self.left, self.right))
 		
 		roi = img[self.top:self.bottom, self.left:self.right]
 		self.roisize = shape(roi)
@@ -147,6 +152,8 @@ class ImageWindow:
 			entry.set_text(value)		
 
 	def safe_set_all(self, value=""):
+		"""
+		"""
 		entries = [self.train_most, self.train_least, self.test_most, self.test_least, self.remaining, self.batches]
 		for entry in entries:
 			try:
@@ -185,8 +192,8 @@ class ImageWindow:
 		if response == gtk.RESPONSE_OK:
 			self.images_dir = fc.get_current_folder() #set this to an attribute?
 			self.images = [os.path.join(self.images_dir, f) for f in fc.get_filenames() if re.search(image_extension_pattern, f)]
-			print "{0} images found".format(len(self.images))
-			print "images: {0}".format("\n".join(self.images))
+			self.logger("{0} images found".format(len(self.images)))
+			self.logger("images: {0}".format("\n".join(self.images)))
 			self.n = len(self.images)
 			self.update_remaining()
 			self.srcfileentry.set_text(self.images_dir)
@@ -215,12 +222,14 @@ class ImageWindow:
 			self.traces_dir = fc.get_current_folder() #set this to an attribute?
 			#should probably filter traces here (make sure images and traces match)
 			self.traces = [os.path.join(self.images_dir, f) for f in fc.get_filenames() if "traced.txt" in f]
-			print "{0} traces found".format(len(self.traces))
-			print "traces: {0}".format("\n".join(self.traces))
+			self.logger("{0} traces found".format(len(self.traces)))
+			self.logger("traces: {0}".format("\n".join(self.traces)))
 		fc.destroy()
 		self.get_tracenames()
 
 	def openDest(self, event):
+		"""
+		"""
 		fc = gtk.FileChooserDialog(title='Select Save Destination', parent=None, 
 			action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER, 
 			buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
@@ -232,15 +241,18 @@ class ImageWindow:
 		if response == gtk.RESPONSE_OK:
 			self.destpath = fc.get_current_folder()
 			self.dstfileentry.set_text(self.destpath)
+			self.log_file = os.path.join(self.destpath, "diversity_log")
 		fc.destroy()  
 
 	def makeDest(self):
+		"""
+		"""
 		#TODO: add this into openDest?
 		diverse_dir = os.path.join(self.destpath, "diverse")
-		print "images will be saved in", diverse_dir
+		self.logger("images will be saved in " + diverse_dir)
 		if not os.path.isdir(diverse_dir):
 			os.mkdir(diverse_dir)
-			print "created directory", diverse_dir
+			self.logger("created directory" + diverse_dir)
 
 	def get_tracenames(self):
 		"""
@@ -256,7 +268,7 @@ class ImageWindow:
 				#get trace name...
 				trace_name = os.path.basename(trace)
 				if image_name in trace_name:
-					print "image: {0}\ttrace: {1}".format(image_name, trace_name)
+					self.logger("image: {0}\ttrace: {1}".format(image_name, trace_name))
 					self.tracenames[image].append(trace)
 
 	def update_remaining(self, *args):
@@ -270,13 +282,15 @@ class ImageWindow:
 		#need to safely get a value or assign zero if nothing
 		self.check_remaining()
 
-		print "remaining: {0}".format(self.remaining.get_text())
+		#print "remaining: {0}".format(self.remaining.get_text())
 		self.remaining.set_text(str(self.n - self.safe_get(self.train_most) - self.safe_get(self.train_least)))
 		#make sure we don't have more batches than remaining...
 		if self.safe_get(self.batches) > self.safe_get(self.remaining):
 			self.batches.set_text(str(self.remaining))
 
 	def check_remaining(self):
+		"""
+		"""
 		#test values come out of training numbers, not overall pool
 		#rest test_most if value exceeds possible
 		self.safe_set_all()
@@ -307,18 +321,75 @@ class ImageWindow:
 	
 		return ave_img, files
 	
+	def make_train_test(self, images, training_n, testing_n=None):
+		"""
+		takes a list of images and test and training sizes
+		returns two lists of non-overlapping images  (training, testing)
+		"""
+		images_array = array(images)
+		images_indices = arange(len(images_array))
+		random.shuffle(images_indices)
+
+		traininds = images_indices[:training_n]
+		trainfiles = images_array[traininds]
+
+		testfiles = []
+		#make sure we have a test set
+		if testing_n:
+			testinds = images_indices[training_n:training_n+testing_n]
+			testfiles = images_array[testinds]
+
+		#return training, testing
+		return list(trainfiles), list(testfiles)
+
+	def move_files(self, images, destination, image_class="??"):
+		"""
+		"""
+		#move our test files...
+		self.logger("Moving {0} {1} files...".format(len(images), image_class))
+		for image in images:
+			image_name = os.path.basename(image)
+			dest = os.path.join(destination, image_name)
+			shutil.copy(image, dest)
+			if image in self.tracenames:
+				#should I average the traces instead?
+				for trace in self.tracenames[image]:
+					trace_name = os.path.basename(trace)
+					dest = os.path.join(destination, trace_name)
+					self.logger("image: {0}".format(image))
+					self.logger("trace source: {0}".format(trace))
+					self.logger("trace dest: {0}\n".format(dest))
+					shutil.copy(trace, dest)
+
+	def plot_diversity(self, sorted_results):
+		"""
+		"""
+		#show rank vs. energy plot
+		count = 0
+		for (i,j) in sorted_results:
+			count += 1
+			plot.plot(count, j, 'b.')
+		#add confirmation dialog that prompts for save location when ok is clicked
+		#plot.savefig(os.path.join(self.destpath, 'rankVenergy.png'))
+		plot.title("rank vs. energy plot for {0} images".format(count))
+		plot.ylabel('Diversity score')
+		plot.xlabel('Rank')
+		#remove x axis ticks
+		#plot.tick_params(axis='x', which='both', bottom='off', top='off', labelbottom='off')
+		plot.show()
+
 	def get_diverse(self):
 		"""
-		gets the n most diverse images from the data 
-		set and copies them into path_to_save
+		get specified diversity set and 
+		then copy relevant files to specified location
 		"""
 		batches = self.safe_get(self.batches)
 
 		if os.path.isdir(self.destpath):
-			print "calculating average image..."
+			self.logger("calculating average image...")
 			ave_img, files = self.get_average_image()
 		
-			print "measuring distances from average..."
+			self.logger("measuring distances from average...")
 			results = {}
 			for i in range(len(self.images)):
 				img = cv.LoadImageM(self.images[i], iscolor=False)
@@ -329,132 +400,96 @@ class ImageWindow:
 		
 			sorted_results = sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)
 
-			#show rank vs. energy plot
-			count = 1
-			for (i,j) in sorted_results:
-				plot.plot(count, j, 'b.')
-				count += 1
-			#add confirmation dialog that prompts for save location when ok is clicked
-			#plot.savefig(os.path.join(self.destpath, 'rankVenergy.png'))
-			plot.title("rank vs. energy plot for {0} images".format(count))
-			plot.ylabel('Diversity score')
-			plot.xlabel('Rank')
-			#remove x axis ticks
-			#plot.tick_params(axis='x', which='both', bottom='off', top='off', labelbottom='off')
-			plot.show()
-			
-			filenames = []
-			for (i,j) in sorted_results:
-				filenames.append(i)
+			#plot rank vs diversity
+			self.plot_diversity(sorted_results)
 
-			most_diverse = self.safe_get(self.train_most)
-			least_diverse = self.safe_get(self.train_least)
+			most_diverse_n = self.safe_get(self.train_most)
+			least_diverse_n = self.safe_get(self.train_least)
 			
-			test_least_diverse = self.safe_get(self.test_least)
-			test_most_diverse = self.safe_get(self.test_most)
+			test_most_diverse_n = self.safe_get(self.test_most)
+			test_least_diverse_n = self.safe_get(self.test_least)
 			
-			test_size = test_least_diverse + test_most_diverse
+			training_most_diverse_n = most_diverse_n - test_most_diverse_n
+			training_least_diverse_n = least_diverse_n - test_least_diverse_n
+
+			test_size = test_most_diverse_n + test_least_diverse_n
+			self.logger("test size: {0}".format(test_size))
 			#remove test size from training size...
-			train_size = most_diverse + least_diverse - test_size
+			train_size = most_diverse_n + least_diverse_n - test_size
+			self.logger("training size: {0}".format(train_size))
 			
-			#do we want any least diverse?
-			if least_diverse > 0:
+			all_images = [image for (image, _) in sorted_results]
+			most_diverse_images = []
+			least_diverse_images = []
+
+			#get n most diverse...
+			if most_diverse_n > 0:
+				self.logger("Selecting {0} most diverse images...".format(most_diverse_n))
+				for (image, score) in sorted_results[:most_diverse_n]:
+					self.logger("file: {0}\ndiversity score: {1}\n".format(image, score))
+					most_diverse_images.append(image)
+
+				#get most diverse for testing and training...
+				training_most_diverse, testing_most_diverse = self.make_train_test(most_diverse_images, training_n=training_most_diverse_n, testing_n=test_most_diverse_n)
+			else:
+				training_most_diverse = []
+				testing_most_diverse = []
+
+			#get n least diverse...
+			if least_diverse_n > 0:
+				self.logger("Selecting {0} least diverse images...".format(least_diverse_n))
 				#take the specified n least diverse...
-				for (i,j) in sorted_results[-1*least_diverse:]:
-					filenames.append(i)
+				for (image, score) in sorted_results[-1*least_diverse_n:]:
+					self.logger("file: {0}\ndiversity score: {1}\n".format(image, score))
+					least_diverse_images.append(image)
+				
+				#get least diverse for testing and training...
+				training_least_diverse, testing_least_diverse = self.make_train_test(least_diverse_images, training_n=training_least_diverse_n, testing_n=test_least_diverse_n)
+			else:
+				training_least_diverse = []
+				testing_least_diverse = []
 			
+			#make test, training, and batch file sets...
+			trainfiles = training_most_diverse + training_least_diverse
+			testfiles = testing_most_diverse + testing_least_diverse
 
-			filenames = array(filenames) 
-			inds = arange(len(filenames))  
-			random.shuffle(inds)
+			#find remaining...
+			selected = set(trainfiles + testfiles)
+			remainingfiles = [image for image in all_images if image not in selected]
 
-			traininds = inds[:train_size]
-			trainfiles = filenames[traininds] 
+			#prepare directory for training files...	
+			self.traindir = os.path.join(self.destpath, "train")
+			if not os.path.isdir(self.traindir):
+				os.mkdir(self.traindir)	
 			
+			#move training files (edit this)...
+			self.move_files(trainfiles, destination=self.traindir, image_class="training")
+
 			#are we generating a test set?
 			if test_size > 0:
 				#prepare directory for test files...
 				self.testdir = os.path.join(self.destpath, "test")
 				if not os.path.isdir(self.testdir):
 					os.mkdir(self.testdir)
-				
-				#figure out which files will be assigned to test...
-				testinds = inds[train_size:train_size+test_size]
-				testfiles = filenames[testinds]
 
-				remaininginds =inds[train_size+test_size:]
-				remainingfiles = filenames[remaininginds]
-
-				#NOTE: this should be a method...
 				#move our test files...
-				for image in testfiles:
-					print "Moving test files..."
-					image_name = os.path.basename(image)
-					dest = os.path.join(self.testdir, image_name)
-					shutil.copy(image, dest)
-					count += 1
-					if image in self.tracenames:
-						#should I average the traces instead?
-						for trace in self.tracenames[image]:
-							trace_name = os.path.basename(trace)
-							dest = os.path.join(self.testdir, trace_name)
-							print "image: {0}".format(image)
-							print "trace source: {0}".format(trace)
-							print "trace dest: {0}\n".format(dest)
-							shutil.copy(trace, dest)
-							count += 1
+				self.move_files(testfiles, destination=self.testdir, image_class="test")
 
-			
-			#NOTE: this should be a method...
-			#prepare directory for training files...	
-			self.traindir = os.path.join(self.destpath, "train")
-			if not os.path.isdir(self.traindir):
-				os.mkdir(self.traindir)	
-			
-			#move training files (edit this)...	
-			for image in trainfiles:
-				print "Moving training files..."
-				image_name = os.path.basename(image)
-				dest = os.path.join(self.traindir, image_name)
-				shutil.copy(image, dest)
-				count += 1
-				if image in self.tracenames:
-					for trace in self.tracenames[image]:
-						trace_name = os.path.basename(trace)
-						dest = os.path.join(self.traindir, trace_name)
-						print "image: {0}".format(image)
-						print "trace source: {0}".format(trace)
-						print "trace dest: {0}\n".format(dest)
-						shutil.copy(trace, dest)
-						count += 1
-
+			#get remaining and make n batches...
 			if batches > 0:				
 				b_num = 1
 				#numpy trick works here...
 				for batch_files in array_split(array(remainingfiles), batches):
-					print "files in batch set: {0}".format(len(batch_files))
 					#pad batch folder name with some zeros
-					batch_dir = "batch%03d" % (b_num)
-					batch_dir = os.path.join(self.destpath, batch_dir)
+					batch_name = "batch%03d" % (b_num)
+					self.logger("files in {0}: {1}".format(batch_name, len(batch_files)))
+					batch_dir = os.path.join(self.destpath, batch_name)
 					if not os.path.isdir(batch_dir):
 						os.mkdir(batch_dir)
 					
-					#NOTE: this should be a method...
-					for image in batch_files:
-						print "Moving batch files..."
-						image_name = os.path.basename(image)
-						dest = os.path.join(batch_dir, image_name)
-						shutil.copy(image, dest)
-						count += 1
-						if image in self.tracenames:
-							for trace in self.tracenames[image]:
-								trace_name = os.path.basename(trace)
-								dest = os.path.join(batch_dir, trace_name)
-								print "image: {0}".format(image)
-								print "trace source: {0}".format(trace)
-								print "trace dest: {0}\n".format(dest)
-								shutil.copy(trace, dest)
-								count += 1
+					#move batch files
+					self.move_files(batch_files, destination=batch_dir, image_class=batch_name)
+					#increment batch...
 					b_num+=1
 
 			# write sorted_results to a .txt file for future reference
@@ -463,18 +498,16 @@ class ImageWindow:
 			for (i,j) in sorted_results:
 				o.write("%s\t%.4f\n" %(i, j))
 			o.close()
- 
-	
-		print "done"
 
 		#move ROI file...
 		roifile = os.path.join(self.images_dir, "ROI_config.txt")
 		if os.path.isfile(roifile):
+			self.logger("moving ROI_config.txt to {0}".format(roifile))
 			shutil.copy(self.destpath, "ROI_config.txt")
- 
 
 	def onOK(self, event):
-		#make sure everything seems alright...
+		"""
+		"""
 		if not self.destpath or not self.images or self.safe_get(self.train_most) == 0:
 			#run error dialog and return...
 			error_dialog = gtk.MessageDialog(parent=None, type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE, message_format="Some of your settings are missing...")
@@ -485,7 +518,11 @@ class ImageWindow:
 		self.get_roi()
 		self.get_diverse()
 		gtk.main_quit()
+		self.logger("exiting...")
+		shutil.move(log_file, self.log_file)
 			
+
 if __name__ == "__main__":
 	ImageWindow()
 	gtk.main()
+
