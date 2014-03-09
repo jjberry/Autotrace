@@ -3,6 +3,7 @@
 '''
 TrainNetwork.py
 Written by Jeff Berry Jul 1 2010
+Revised by Gus Hahn-Powell March 8 2014
 
 purpose:
 	Train a translational Deep Belief Network for tracing. The training
@@ -20,7 +21,7 @@ usage:
 Modified by Jeff Berry Feb 19 2011
 reason:
 	Updated to make use of ROI_config.txt, which should be in the same
-	folder as JPG/ and TongueContours.csv
+	folder as IMAGES/ and TongueContours.csv
 '''
 
 import sys, os
