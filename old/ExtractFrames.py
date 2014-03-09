@@ -205,7 +205,7 @@ class Extract:
 
     def extract(self):
         #jpgdir = os.path.join(self.outputpath, "PNG")
-        jpgdir = self.outputpath + 'PNG/'
+        jpgdir = self.outputpath + 'JPG/'
         if not os.path.isdir(jpgdir):
             os.mkdir(jpgdir)
         #wavdir = os.path.join(self.outputpath, "WAV")
