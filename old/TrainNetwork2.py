@@ -7,7 +7,7 @@ Written by Jeff Berry Jul 1 2010
 purpose:
     Train a translational Deep Belief Network for tracing. The training
     data should be arranged in a folder called Subject<N>, where N is any
-    positive integer, such as Subject1. Images are located in Subject1/JPG/
+    positive integer, such as Subject1. Images are located in Subject1/IMAGES/
     and should be .jpg files. The traces are in Subject1/TongueContours.csv,
     which can be created using AutoTrace.py or configdir.py. Parameters 
     defining the region of interest should be listed in Subject1/ROI_config.txt,
@@ -17,6 +17,10 @@ purpose:
 usage:
     python TrainNetwork.py
 ---------------------------------------------
+Modified by Gus Hahn-Powell March 8 2014
+reason:
+    Updated load data to search for Subject<N> folders
+
 Modified by Jeff Berry Feb 19 2011
 reason:
     Updated to make use of ROI_config.txt, which should be in the same
@@ -24,7 +28,8 @@ reason:
 '''
 
 import sys, os
-import subprocess
+import subprocess as sp
+import re
 import smtplib
 try:
  	import pygtk
@@ -36,6 +41,8 @@ try:
   	import gtk.glade
 except:
 	sys.exit(1)
+
+subject_number_pattern = re.compile("Subject([0-9]+)",re.IGNORECASE)
 
 class TrainNetwork:
     """This is the class for the main window of trainnetwork.py"""
@@ -292,7 +299,7 @@ class TrainNetwork:
         argstr = "TrainNetwork" + args + "; quit()"
         print argstr
         cmd = ['matlab', '-nodesktop', '-nosplash', '-r', argstr]
-        self.proc = subprocess.Popen(cmd)
+        self.proc = sp.Popen(cmd)
         self.proc.wait()
         
         if self.NOTIFY:
@@ -384,29 +391,26 @@ class TrainNetwork:
         
         
     def add_data(self, widget):
-        fc = gtk.FileChooserDialog(title='Select Data Folders...', parent=None, 
+        fc = gtk.FileChooserDialog(title='Select Data Folder...', parent=None, 
             action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER, 
             buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
         g_directory = fc.get_current_folder() if fc.get_current_folder() else os.path.expanduser("~")
         fc.set_current_folder(g_directory)
         fc.set_default_response(gtk.RESPONSE_OK)
-        fc.set_select_multiple(True)
+        #fc.set_select_multiple(True)
         response = fc.run()
         if response == gtk.RESPONSE_OK:
-            dirs = fc.get_filenames()
-            g_directory = fc.get_current_folder()
-            self.getSubjectNums(dirs)
+            data_folder = fc.get_current_folder()
+            self.getSubjectNums(data_folder)
         fc.destroy()
         
-    def getSubjectNums(self, dirlist):
-        subjectNums = []
-        for i in range(len(dirlist)):
-            s = dirlist[i].split('/Subject')
-            subjectNums.append(s[1])
+    def getSubjectNums(self, data_folder):
+        
+        subjectNums = [int(re.search(subject_number_pattern, item).group(1)) for item in os.listdir(os.getcwd()) if item.startswith("Subject")]
 
         self.SUBJECT_NUMS = "[" + ", ".join(subjectNums) + "]"                   
-        self.DATA_DIR = s[0]            
+        self.DATA_DIR = data_folder           
                             
 class ConfigLayersDialog:
     """This class is used to get sizes and types of layers of the network"""
