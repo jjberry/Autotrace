@@ -15,7 +15,7 @@ usage:
     This file should be placed in the directory with the .jpg/.png
     and corresponding .traced.txt files, as well as ROI_config.txt.
     Running this script produces the directories Subject1/, traces/
-    and Subject1/JPG/, as well as TongueContours.csv. ROI_config.txt
+    and Subject1/IMAGES/, as well as TongueContours.csv. ROI_config.txt
     is moved into Subject1/.
     
 --------------------------------------------------
