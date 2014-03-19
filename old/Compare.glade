@@ -16,7 +16,7 @@
             <child>
               <widget class="GtkLabel" id="label1">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Traces 1:</property>
+                <property name="label" translatable="yes">Gold Traces:</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -72,7 +72,7 @@
             <child>
               <widget class="GtkLabel" id="label2">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Traces 2:</property>
+                <property name="label" translatable="yes">Experimental Traces:</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
