@@ -45,8 +45,8 @@ class WorkThread(multiprocessing.Process):
 				c2Y = args[3]
 				ind = args[4]
 				TRIM = args[5]
-				trace1name = args[6]
-				trace2name = args[7]
+				goldname = args[6]
+				experimentalname = args[7]
 				savepath = args[8]
 
 				if (TRIM == True):
@@ -67,11 +67,11 @@ class WorkThread(multiprocessing.Process):
 					try:
 						min(c1X)
 					except:
-						print "Problem with ", trace1name
+						print "Problem with ", goldname
 					try: 
 						min(c2X)
 					except:
-						print "Problem with ", trace2name
+						print "Problem with ", experimentalname
 					c1Xi = array(arange(min(c1X), max(c1X)+1))
 					c1Yi = interp(c1Xi, c1X, c1Y)
 					c2Xi = array(arange(min(c2X), max(c2X)+1))
@@ -90,9 +90,9 @@ class WorkThread(multiprocessing.Process):
 				mean1 = mean(md1)
 				md = mean([mean0, mean1])
 				o = open(os.path.join(savepath,"{idx}.txt".format(idx=ind)), 'w')
-				o.write('%06d,%s,%s,%.8f\n' % (ind, trace1name, trace2name, md))
+				o.write('%06d,%s,%s,%.8f\n' % (ind, goldname, experimentalname, md))
 				o.close()
-				trace_name = self.commonsubstr(os.path.basename(trace1name), os.path.basename(trace2name))
+				trace_name = self.commonsubstr(os.path.basename(goldname), os.path.basename(experimentalname))
 				print "{trname}:\t{msd}".format(trname=trace_name, msd=md)
 
 	def commonsubstr(self, t1, t2):
@@ -101,7 +101,7 @@ class WorkThread(multiprocessing.Process):
 			if t1[i] == t2[i]:
 				name += t1[i]
 			else:
-				return name
+				return name[:-1] if name[-1] in ".-,/" else name
 
 class CompareWindow:
 	def __init__(self):
@@ -128,6 +128,7 @@ class CompareWindow:
 		self.goldTraces = []
 		self.experimentalTraces = []
 		self.bad_traces = []
+		self.threshold = 30
 		
 	def getgolddir(self, event):
 		fc = gtk.FileChooserDialog(title='Open Trace Directory', parent=None, 
@@ -486,12 +487,14 @@ class CompareWindow:
 			f = open(os.path.join(tmpdir, i), 'r').readlines()
 			lines.append(f[0][:-1])
 			d = float(f[0][:-1].split(',')[-1])
+			if d > self.threshold:
+				problem_trace = f[0][:-1].split(',')[1]
+				self.bad_traces.append(problem_trace)
 			total.append(d)
 		for i in sorted(lines):
 			o.write(i+'\n')
 		o.write("mean: %.4f\n" % mean(total))    
 		o.close()
-		
 		print "mean:", mean(total)
 		
 		#cleanup
