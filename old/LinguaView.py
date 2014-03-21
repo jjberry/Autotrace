@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 import neutralContour as nc
 import LabelWindow as lw
 import AnalysisWindow as aw

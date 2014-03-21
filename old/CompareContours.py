@@ -128,7 +128,7 @@ class CompareWindow:
 		self.goldTraces = []
 		self.experimentalTraces = []
 		self.bad_traces = []
-		self.threshold = 30
+		self.threshold = 10
 		
 	def getgolddir(self, event):
 		fc = gtk.FileChooserDialog(title='Open Trace Directory', parent=None, 
