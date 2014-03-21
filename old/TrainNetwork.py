@@ -39,6 +39,8 @@ try:
 except:
 	sys.exit(1)
 
+subject_number_pattern = re.compile("Subject([0-9]+)",re.IGNORECASE)
+
 class TrainNetwork:
 	"""This is the class for the main window of trainnetwork.py"""
 	
