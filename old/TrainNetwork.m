@@ -46,13 +46,12 @@ function TrainNetwork(train_ultrasound, train_contours, test_ultrasound, test_co
   % NNetMinimization = 'lbfgsNN'
 
   [contfiles, subjectid, contx, conty] = loadContours(data_dir, subject_nums);
-
   [contfiles, subjectid, contx, conty] = ...
     sampleContFiles(contfiles, subjectid, contx, conty, max_num_images);
 
   [cxc, cyc, minx, maxx, miny, maxy] = cleanContours(contx, conty);
-
-  [contimgs, interprows, interpcols] =...
+  %cyc $for debug purposes (finding empty traces, single-point traces, etc)
+  [contimgs, interprows, interpcols] = ...
     makeContourImages(cxc, cyc, minx, maxx, miny, maxy);
 
   %%%% Do the deep net learning of contours %%%%%

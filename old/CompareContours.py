@@ -101,7 +101,7 @@ class WorkThread(multiprocessing.Process):
 			if t1[i] == t2[i]:
 				name += t1[i]
 			else:
-				return name[:-1] if name[-1] in ".-,/" else name
+				return name[:-1] if name[-1] in ".,/" else name
 
 class CompareWindow:
 	def __init__(self):
@@ -128,7 +128,7 @@ class CompareWindow:
 		self.goldTraces = []
 		self.experimentalTraces = []
 		self.bad_traces = []
-		self.threshold = 10
+		self.threshold = 5
 		
 	def getgolddir(self, event):
 		fc = gtk.FileChooserDialog(title='Open Trace Directory', parent=None, 
@@ -407,7 +407,7 @@ class CompareWindow:
 		move problem traces to folder for retracing/retraining
 		"""
 		pathtosave = os.path.dirname(self.savename)
-		problem_traces_dir = os.path.join(pathtosave, "PROBLEM_TRACES")
+		problem_traces_dir = os.path.join(pathtosave, "PROBLEM_TRACES_MSDge{0}".format(self.threshold))
 		
 		if os.path.exists(problem_traces_dir):
 			shutil.rmtree(problem_traces_dir)
