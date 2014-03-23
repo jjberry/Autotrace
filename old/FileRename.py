@@ -22,10 +22,10 @@ import os, subprocess
 import re
 import gtk
 import gtk.glade
-
-frame_number_pattern = re.compile("(frame-|_)([0-9]+)\.png|\.jpg", re.IGNORECASE) #also handles older naming conventions...
-image_extension_pattern = re.compile("(\.(png|jpg))", re.IGNORECASE)
-tracer_pattern = re.compile("([a-z0-9]+)\.traced", re.IGNORECASE) #some tracers use a number...not jsut initials...
+image_extension_pattern = re.compile("(\.jpg|\.png)", re.I)
+frame_number_pattern = re.compile("(?<=frame-)?([^_.]+)(?=\.jpg|\.png)", re.I) #also handles older naming conventions...
+#image_extension_pattern = re.compile("(\.(png|jpg))", re.IGNORECASE)
+tracer_pattern = re.compile("([a-z0-9]+)\.traced", re.I) #some tracers use a number...not jsut initials...
 class FileRename:
     '''This file renamer expects the format of the source files to be <name>_<frame>.jpg
         <name> can be a combination of letters and numbers, and <frame> is numbers.
@@ -100,11 +100,11 @@ class FileRename:
         logfile = open(self.dstpath+'log.txt', 'w')
         for i in self.srcfilelist:
             shortname = os.path.basename(i)
-            image_extension = re.search(image_extension_pattern, shortname).group(1).lower() #lowercase image extension
+            image_extension = re.search(image_extension_pattern, i).group(1)
             extension = "traced.txt" if "traced.txt" in shortname else image_extension
             print "shortname: {0}\textension: {1}".format(shortname, extension) #debug
             itemname = shortname.split('_')[2] if (shortname.count("_") >= 3) else item
-            framenumber = shortname.split('_')[3] + extension if (shortname.count("_") >= 3) else re.search(frame_number_pattern, shortname).group(2)
+            framenumber = re.search(frame_number_pattern, shortname).group(1)
             #make basic filename and image name...
             print "studycode: {0}".format(studycode) #debug
             print "subjnum: {0}".format(subjnum) #debug

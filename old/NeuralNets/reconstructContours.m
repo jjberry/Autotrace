@@ -17,12 +17,16 @@ function [result, smallcx, smallcy, largecx, largecy] = reconstructContours(data
   img(continds) = result(1:length(continds)).*s(cind) + m(cind);
   contresult = img;
   
+  %don't use polar...
+  %usepolar = false;
+  fprintf('height: %.2f\n', height);
   % Extract a smooth tongue contour out of the image
   if (usepolar) 
     [smallcx, smallcy] = contourFromPolar(img);
   else
     [smallcx, smallcy] = contourFromImg(img);
   end
+
   largecx = (smallcx-.5)*interpcols/width+minx-1;
   largecy = (smallcy-.5)*interprows/height+miny-1;  
   toc
@@ -99,6 +103,9 @@ function [newx, newy] = contourFromPolar(img)
 
 function [smallcx, smallcy] = contourFromImg(contresult)
   % Extract a smooth tongue contour out of the image
+  %why can't I find height?
+  %global height
+  %[height, width] = size(contresult);
   [vals, inds] = max(contresult);
   temp = 0.05;
   inds = [1:height]*exp(contresult/temp) ./ sum(exp(contresult/temp));
