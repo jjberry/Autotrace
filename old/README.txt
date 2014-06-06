@@ -1,10 +1,6 @@
 LabTools version 0.01_Feb21_2011
 Copyright (C) 2011 Jeff Berry jjberry@email.arizona.edu
 
-This program is free software; you can modify it 
-under the terms of the CRAPL License as published 
-by Matthew Might at
-http://matt.might.net/articles/crapl/
 
 ==================================================
 INSTALLATION
