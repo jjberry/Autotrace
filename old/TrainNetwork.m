@@ -1,9 +1,9 @@
 % TrainNetwork.m
 % Written by Jeff Berry on Jul 1 2010
-% 
+%
 % purpose:
 %   Train a tDBN to trace tongue contours
-% 
+%
 % usage:
 %   See TrainNetwork.py
 %
@@ -23,12 +23,12 @@ function TrainNetwork(train_ultrasound, train_contours, test_ultrasound, test_co
   % train_ultrasound & train_contours = true
   % test_ultrasound = true, test_contours = false
   % i.e. we're training a deep net for autotracing
-  
+
   numHidLayers = 3;
   pretrain = true;
   pretrainWithJointContourLabels = true;
   autoencoder = true;
-  
+
   if practice_run
     show = false
     numRBMiter = 40;
@@ -72,7 +72,7 @@ function TrainNetwork(train_ultrasound, train_contours, test_ultrasound, test_co
     traininds = setdiff([1:ndata],validinds);
     %validinds = [1:ndata];
     %traininds = [1:ndata];
-  
+
     if pretrainWithJointContourLabels
       trainX = XC(rp(traininds),:);
       trainT = XC(rp(traininds),:);
@@ -85,8 +85,8 @@ function TrainNetwork(train_ultrasound, train_contours, test_ultrasound, test_co
       validT = XC(rp(validinds),continds);
     end
 
-    layers = eval(network_sizes); 
-    types = network_types; 
+    layers = eval(network_sizes);
+    types = network_types;
 
     if ~autoencoder
       layers = cat(2,layers, length(continds));
@@ -95,7 +95,7 @@ function TrainNetwork(train_ultrasound, train_contours, test_ultrasound, test_co
     if ~pretrain
       numRBMiter = 0;
     end
-  
+
 
     if autoencoder
       % Pre-train the deep net
@@ -108,7 +108,7 @@ function TrainNetwork(train_ultrasound, train_contours, test_ultrasound, test_co
         deepnet{2 * no_layers + 1 - j}.W = deepnet{j}.W';
         deepnet{2 * no_layers + 1 - j}.bias = deepnet{j}.bias_downW';
         deepnet{2 * no_layers + 1 - j}.hidtype = deepnet{j}.vistype;
-        deepnet{2 * no_layers + 1 - j}.vistype = deepnet{j}.hidtype;          
+        deepnet{2 * no_layers + 1 - j}.vistype = deepnet{j}.hidtype;
       end
     else
       % Pre-train the deep net
@@ -163,7 +163,7 @@ function TrainNetwork(train_ultrasound, train_contours, test_ultrasound, test_co
       trainT = XC(rp(traininds),height*width+1:end);
       validT = XC(rp(validinds),height*width+1:end);
     end
-    
+
     if ~autoencoder
       % Discriminatively train to targets
       deepnet = RidgeLastLayer(deepnet, trainX, trainT, 0.1, [], validX, validT);
@@ -192,8 +192,7 @@ function TrainNetwork(train_ultrasound, train_contours, test_ultrasound, test_co
     meancdist1(i) = mean(cdist1)
     meancdist2(i) = mean(cdist2)
     meancdist(i) = mean([mean(cdist1), mean(cdist2)])
+    fprintf('Saving trained network...')
     save savefiles/network contnetwork originalnetwork continds s m minx maxx miny maxy meancdist
     save savefiles/meancdist meancdist meancdist1 meancdist2
   end
- 
-
