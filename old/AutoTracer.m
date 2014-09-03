@@ -20,10 +20,10 @@
 function [xs, ys, worst] = AutoTracer(directory, roi, networkfile)
 	addpath('NeuralNets/')
 	load(networkfile);
-	
+
   %Gus: changed to support multiple image formats
   files = [ dir(fullfile(directory, '*.jpg')) ; dir(fullfile(directory, '*.png'))];
-	
+
 	for i = 1:length(files);
 		[xs{i}, ys{i}] = TraceOne(fullfile(directory, files(i).name), contnetwork, continds, maxx, minx, maxy, miny, s, m, roi);
 		iminds = zeros(length(xs{i}),3);
@@ -35,23 +35,27 @@ function [xs, ys, worst] = AutoTracer(directory, roi, networkfile)
 		dlmwrite(fullfile(directory, fname), iminds, 'delimiter', '\t', 'newline', 'unix');
 	end
 
-function [largecx, largecy, contresult] = TraceOne(filename, contnetwork, continds, maxx, minx, maxy, miny, s, m, roi)    
+function [largecx, largecy, contresult] = TraceOne(filename, contnetwork, continds, maxx, minx, maxy, miny, s, m, roi)
     top = roi(1);
     bottom = roi(2);
     left = roi(3);
     right = roi(4);
-    
+
 	scale = 0.1;
-	 
-	%keyboard	
+
+	%keyboard
 	% Read one image to see what the final size will be when we resize it
 	img = imread( filename );
-	cropped = double(imresize(rgb2gray(img(top:bottom,left:right,:)),scale,'bicubic'));
-	[height, width] = size(cropped);
+	% test to see whether or not image is grayscale
+  if size(img, 3) == 3
+    img = rgb2gray(img(top:bottom,left:right,:));
+  end
+  cropped = double(imresize(img, scale,'bicubic'));
+  [height, width] = size(cropped);
 
 	XC = cropped(:)';
 	XC = (XC-m(1:(height*width)))./s(1:(height*width));
-	
+
 	% from reconstructContours.m
 	result = run_through_network(contnetwork, XC);
 	cind = [1:length(continds)] + height*width;
@@ -59,7 +63,7 @@ function [largecx, largecy, contresult] = TraceOne(filename, contnetwork, contin
 	contresult(continds) = result(1:length(continds)).*s(cind) + m(cind);
 	%figure(2)
 	%imshow(contresult, [], 'InitialMagnification', 'fit');
-	 
+
 	crm = mean(contresult(:));
 	crs = std(contresult(:));
 	contresult(contresult<(crm)) = crm;
@@ -68,12 +72,12 @@ function [largecx, largecy, contresult] = TraceOne(filename, contnetwork, contin
 
 	%[smallcx, smallcy] = contourFromImg(contresult);
 	[smallcx, smallcy, H] = contourFromPolar(contresult);
-	
+
 	interprows = maxy-miny+1;
 	interpcols = maxx-minx+1;
-	
+
 	largecx = (smallcx-.5)*interpcols/width+minx-1;
-	largecy = (smallcy-.5)*interprows/height+miny-1;  
+	largecy = (smallcy-.5)*interprows/height+miny-1;
 
 	h = figure(1);
 	subplot(2,1,1)
@@ -151,5 +155,3 @@ function [smallcx, smallcy] = contourFromImg(contresult)
   smallcx = [min(smallcx):max(smallcx)];
   f = getBinSmoothHandle(h,smallcx,kern);  % Precompute everything not data-driven
   smallcy = f(inds(smallcx)-height)+height;
-
-   
