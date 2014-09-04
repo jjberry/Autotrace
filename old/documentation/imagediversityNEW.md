@@ -1,20 +1,11 @@
+Image Diversity New Manual
+===
+>This script measures the distance from average for each image in the
+	input set, and copies the specified number of highest scoring images
+	to a new folder called 'diverse'. If ROI_config.txt is present in the 
+	same folder as the input images, the ROI in that file will be used to 
+	do the measurement. If not present, it will use a hard-coded default ROI.
 
-
-
-New Features:  
-  *checks how many image files you've selected and sets this as "remaining"
-  *test images are selected from training
-  *program prevents user-specified training image counts from exceeding value of "remaining"
-  *"remaining" adjusts as user specifies number of files for training
-
-ToDo:  
-  *change move stuff to method call
-  *change all print statements to log
-  *in the case where one image corresponds to multiple traces, average the traces?
-
-
-
-
-
-
-  
+Usage
+---
++ Open [Image Diversity](../image_diversityNEW.py)

@@ -5,22 +5,23 @@ Using AutoTrace
 Locating AutoTrace Program
 ----
  + Open Program
- INSERT IMAGE1 HERE
-insert autotrace relative link here
+ ![Image1](images/Image1.png)
+ 
+[Open AutoTrace](../AutoTrace.py)
 
 Adding Images to Autotrace
 ----
 
- + To import images, click _open_ button found on top left of program
+ + To import images, click __open__ button found on top left of program
 
  + To import multiple images: select first image, hold _shift_, and select last desired image
 
- + Once images are selected, click _open_
+ + Once images are selected, click __open__
 
 Beginning Tracing
 ----
 
- + Select one image and click _view_ found on top center of program
+ + Select one image and click __view__ found on top center of program
 
 >>A new window will open
 
@@ -29,15 +30,15 @@ Beginning Tracing
 Setting the Grid
 ----
 
- + If yellow grid lines are not aligned with edges of image, click _set grid_ (at top of program) to remove the lines
+ + If yellow grid lines are not aligned with edges of image, click __set grid__ (at top of program) to remove the lines
 
- INSERT IMAGE2 HERE
+![Image2](images/Image2.png)
 
 
 >>An _incorrect_ grid-gridlines are not aligned with edges of image
 
  + Draw new grid lines from bottom left edge to top left edge and bottom right edge to top right edge 
- >>if drawn from right to left, the grid will be inverted and you will need to back out by closing out of the window and returning to _adding images_ section
+ >>if drawn from right to left, the grid will be inverted and you will need to back out by closing out of the window and returning to __adding images__ section
 
  + The grid can only be set once while the image is open
  >>if a mistake is made, you must back out to redraw the grid
@@ -47,7 +48,7 @@ Creating the Trace
 
 >>Image should appear as black with white line(s) splitting mouth into upper palate and tongue
 
- + Hold left mouse button and trace line of tongue
+ + Hold _left mouse button_ and trace line of tongue
 
  + Place dots starting from either left or right
 
@@ -55,13 +56,13 @@ Creating the Trace
 <br />
 >>_Tip:_ it can help to draw rough arch, then fine tune dot placements (only one dot will appear per gridline)
 
- + If needed, hold right mouse button and move over any existing dots to erase
+ + If needed, hold _right mouse button_ and move over any existing dots to erase
 
- + When finished with image, click _next_ at top of program; work will automatically be saved
+ + When finished with image, click __next__ at top of program; work will automatically be saved
 
  + Old traces will be saved in separate folder
 
- + Once work is saved, it can accessed in _recent traces_ folder
+ + Once work is saved, it can accessed in __recent traces__ folder
  >>The folder is automatically named with tracer information of all tracers who have placed traces in folder using AutoTrace
 
 Tracing Guidelines
@@ -71,11 +72,11 @@ Tracing Guidelines
 
  + If the tongue border is unclear, do not place dots
 
- + If _double tongue_ occurs, choose lower line (upper is usually palate)
+ + If double tongue occurs, choose lower line (upper is usually palate)
 
  + If no distinct lines can be made out, the image may be “bad” and be untraceable
 
- INSERT IMAGE3 HERE
+ ![Image3](images/Image3.png)
 
  >>Untraceable image
 
@@ -86,7 +87,7 @@ Checking Output
 
 >>A complete tongue tracing should now have a correct grid and accurately traced tongue image
 
-INSERT IMAGE4 HERE
+![Image4](images/Image4.png)
 Desired result
 
 Exiting
