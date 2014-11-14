@@ -6,6 +6,9 @@
 *.iml
 *.iws
 
+# Network files
+*.mat
+
 # Mac
 .DS_Store
 
