@@ -23,7 +23,7 @@ terminal window:
 
 	`matlab -nodesktop`
 
-2.  ###Praat
+2.  ###Praat  
 You will also need Praat (http://www.fon.hum.uva.nl/praat/) to be installed in the normal place.
 
   Several system calls are made to Praat using:
@@ -84,7 +84,7 @@ new `R` will be ignored without that alias. You will also
 need to install the assist package in `R`, which can be done
 by starting `R` and typing
 
-`install.packages('assist')``
+`install.packages('assist')`
 
 If you don't want to use the MacPorts `R`, then leave it off
 of the last port command.
