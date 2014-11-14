@@ -6,7 +6,7 @@ Locating AutoTrace Program
 ----
  + Open Program
  ![Image1](images/Image1.png)
- 
+
 [Open AutoTrace](../AutoTrace.py)
 
 Adding Images to Autotrace
@@ -37,7 +37,7 @@ Setting the Grid
 
 >>An _incorrect_ grid-gridlines are not aligned with edges of image
 
- + Draw new grid lines from bottom left edge to top left edge and bottom right edge to top right edge 
+ + Draw new grid lines from bottom left edge to top left edge and bottom right edge to top right edge
  >>if drawn from right to left, the grid will be inverted and you will need to back out by closing out of the window and returning to __adding images__ section
 
  + The grid can only be set once while the image is open
