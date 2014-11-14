@@ -9,7 +9,7 @@ See the [documentation](https://github.com/jjberry/Autotrace/tree/master/documen
 #Installation
 This code depends on a lot of other software, both
 open source and proprietary.
-The software works best on Linux, but will also run on Mac OS X via macports (see the [installer script](https://github.com/jjberry/Autotrace/blob/master/mac_autotrace_installer.py)).
+The software works best on Linux, but will also run on Mac OS X via macports (see the [installer script](https://github.com/jjberry/Autotrace/blob/master/installer-scripts/mac_autotrace_installer.py)).
 
 ##General requirements
 
@@ -36,7 +36,7 @@ those lines.
 ---
 ##Linux (Ubuntu)
 
-If you're using Ubuntu (or a similar distro), you can use our [installer script](https://github.com/jjberry/Autotrace/blob/master/ubuntu_autotrace_installer.sh):
+If you're using Ubuntu (or a similar distro), you can use our [installer script](https://github.com/jjberry/Autotrace/blob/master/installer-scripts/ubuntu_autotrace_installer.sh):
 
 `./ubuntu_autotrace_installer.sh`
 ##Mac OS X
