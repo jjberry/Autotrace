@@ -14,10 +14,10 @@ Select ROI
 	ROI_config.txt will be used by other scripts, such as image_diversity.py,
 	Autotrace.py, and TrainNetwork.py.
 
- + Open __Select ROI__
- + To do this open the __terminal__
- + Open a new tab within the __terminal__
- + Change to the Autotrace directory (ex.`cd /path/to/Autotrace/old`)
++ Open __Select ROI__
++ To do this open the __terminal__
++ Open a new tab within the __terminal__
++ Change to the Autotrace directory (ex.`cd /path/to/Autotrace/old`)
 
 + Start [SelectROI.py](../SelectROI.py) by typing `python SelectROI.py`
 + The terminal will open followed by an __Open Image Files__ screen.
@@ -36,31 +36,34 @@ __TODO__: _add screenshots_
 	same folder as the input images, the ROI in that file will be used to
 	do the measurement. If not present, it will use a hard-coded default ROI.
 
-+ Open [Image Diversity](../image_diversityNEW.py)
++ Open [Image Diversity](../image_diversityNEW.py) by typing `python image_diversityNEW.py`
+![Image Diversity](images/image_diversityNEW.png)
 
- + Click _open_ by the Select Files field
++ Click _open_ by the Select Files field
  >Note: this program filters so that only images can be selected, and once you click _open_ it may take a while.
- + It will then ask for corresponding traces to match the images
- + Hit _open_ once you ahve selected the corresponding traces
- + The main screen tells the number of images selected
- + Specify the number for training and testing
++ It will then ask for corresponding traces to match the images
++ Hit _open_ once you have selected the corresponding traces
++ The main screen tells the number of images selected
++ Specify the number for training and testing
  >_training_ is the first time it runs through, and then the number you _test_ comes from the _training_ batch
- + specify the numer of _most diverse_ and _least diverse_
++ specify the numer of _most diverse_ and _least diverse_
  > _most diverse_ will select images that vary greatly in their tongue contours, while _least diverse_ will select images that all have similar tongue contours
 
  + That will reduce the numbr of overall images based on your specifications
- + Select the ratio of _most diverse_ to _least diverse_
- + From this you can select a __test set__
- + __batches for remaining__ is simply all of the images that you have not selected to train with, and they will go into a folderentitled __remaining__
++ Select the ratio of _most diverse_ to _least diverse_
++ From this you can select a __test set__. It is recommended that you use a sample from your most diverse images for testing.
++ __batches for remaining__ is simply all of the images that you have not selected to train with, and they will go into a folderentitled __remaining__
  > Note: if an __error__ during this part of the process occurs then some settings may be missing
- + Save to your folder of choice
- + Click __OK__
- + From this a graph will open
++ Save to your folder of choice
++ Click __OK__
++ From this a graph will open
+![Image Diversity Graph](images/image_diversityNEWgraph.png)
  > This shows __Diversity Scores__ on the Y axis. Diversity scores will be higher if you have more diverse images and vice versa for least diverse. On the X axis it simply ranks the numbers based on their order.
+
  + You can save this graph if you would like or take a screenshot
- + the program will close automatically when it is done running (T: may not be correct, program has not closed automatically for me yet)
- + Open the folder where you specified to have the images
- > in this folder there will be several other new folders. __batch remaining__ is the folder discussed above. __diversity log__ is the record of what happened in the file move. __sorted results__ are the scores for each image.
+>The program will close automatically when it is done running (T: may not be correct, program has not closed automatically for me yet)
++ Open the folder where you specified to have the images
+ > Note: In this folder there will be several other new folders. __batch remaining__ is the folder discussed above. __diversity log__ is the record of what happened in the file move. __sorted results__ are the scores for each image.
 
 Configdir
 ---
@@ -69,10 +72,11 @@ __TODO__: _add screenshots_
     structure that TrainNetwork.py expects.
 
 + run [configdir.py](../configdir.py) by typing `python configdir.py`
-+ Running this script produces the directories __Subject1/__, __traces/__ and __Subject1/IMAGES/__, as well as __TongueContours.csv__.
-+ __ROI_config.txt__
-    is moved into __Subject1/__.
+![configdir](images/configdir.png)
 + Select the _train_ directory created by ImageDiversity
+![configdir2](images/configdir2.png)
++ Running this script produces the directories __Subject1/__, __traces/__ and __Subject1/IMAGES/__, as well as __TongueContours.csv__.
++ __ROI_config.txt__    is moved into __Subject1/__.
 
 Train Network
 ---
@@ -80,6 +84,7 @@ __TODO__: _add screenshots_
 >there are two versions of __Train Network__. For this we will be using __Train Network 2__
 
  + In the `Autotrace/matlab-version` directory, Launch __Train Network 2__ with the following command `python TrainNetwork2.py`
+ ![TrainNetwork2](images/TrainNetwork2.png) 
  + In the __Data__ dropdown menu, specify the training data that is compiled in the folder by clicking on the subject's folder then clicking _open_
  + Select __send email notification__
 
@@ -96,3 +101,4 @@ __TODO__: _add screenshots_
  + Load the network
  + Select iamges and click _open_
  + Once you click this __Matlab__ will start
+
