@@ -29,7 +29,7 @@ Select ROI
 
 Image Diversity NEW
 ---
-__TODO__: _add screenshots_
+
 >This script measures the distance from average for each image in the
 	input set, and copies the specified number of highest scoring images
 	to a new folder called 'diverse'. If ROI_config.txt is present in the
@@ -67,7 +67,7 @@ __TODO__: _add screenshots_
 
 Configdir
 ---
-__TODO__: _add screenshots_
+
 >This script arranges training data into the directory
     structure that TrainNetwork.py expects.
 
@@ -80,7 +80,7 @@ __TODO__: _add screenshots_
 
 Train Network
 ---
-__TODO__: _add screenshots_
+
 >there are two versions of __Train Network__. For this we will be using __Train Network 2__
 
  + In the `Autotrace/matlab-version` directory, Launch __Train Network 2__ with the following command `python TrainNetwork2.py`
@@ -96,9 +96,12 @@ __TODO__: _add screenshots_
 
 Autotrace
 ---
-__TODO__: _add screenshots_
- + Open __Autotrace__
- + Load the network
- + Select iamges and click _open_
- + Once you click this __Matlab__ will start
+ + Open __Autotrace__ with the command `python Autotrace.py`
+ ![Autotrace1](images/Autotrace1.png)
+ + Click the second icon from the left, "Load Network"
+ ![Autotrace2](images/Autotrace2.png)
+ + Select the _network.mat_ file in the _savefiles_ directory in your Autotrace folder and click _open_. 
+![Autotrace3](images/Autotrace3.png) 
+ + Click the leftmost icon, "Load Images", select a test set of images and click _open_
+ + Click the "gears" icon to begin tracing the images. At this point, __Matlab__ will start. You will see a notification window when it is finished. 
 

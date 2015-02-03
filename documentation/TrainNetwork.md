@@ -37,6 +37,7 @@ Image Diversity NEW
 	do the measurement. If not present, it will use a hard-coded default ROI.
 
 + Open [Image Diversity](../image_diversityNEW.py) by typing `python image_diversityNEW.py`
+
 ![Image Diversity](images/image_diversityNEW.png)
 
 + Click _open_ by the Select Files field
@@ -72,8 +73,10 @@ Configdir
     structure that TrainNetwork.py expects.
 
 + run [configdir.py](../configdir.py) by typing `python configdir.py`
+
 ![configdir](images/configdir.png)
 + Select the _train_ directory created by ImageDiversity
+
 ![configdir2](images/configdir2.png)
 + Running this script produces the directories __Subject1/__, __traces/__ and __Subject1/IMAGES/__, as well as __TongueContours.csv__.
 + __ROI_config.txt__    is moved into __Subject1/__.
@@ -84,6 +87,7 @@ Train Network
 >there are two versions of __Train Network__. For this we will be using __Train Network 2__
 
  + In the `Autotrace/matlab-version` directory, Launch __Train Network 2__ with the following command `python TrainNetwork2.py`
+
  ![TrainNetwork2](images/TrainNetwork2.png) 
  + In the __Data__ dropdown menu, specify the training data that is compiled in the folder by clicking on the subject's folder then clicking _open_
  + Select __send email notification__
