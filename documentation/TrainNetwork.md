@@ -17,7 +17,7 @@ Select ROI
 + Open __Select ROI__
 + To do this open the __terminal__
 + Open a new tab within the __terminal__
-+ Change to the Autotrace directory (ex.`cd /path/to/Autotrace/old`)
++ Change to the Autotrace directory (ex.`cd /path/to/Autotrace/matlab-version`)
 
 + Start [SelectROI.py](../SelectROI.py) by typing `python SelectROI.py`
 + The terminal will open followed by an __Open Image Files__ screen.
@@ -90,13 +90,13 @@ Train Network
 
  ![TrainNetwork2](images/TrainNetwork2.png) 
  + In the __Data__ dropdown menu, specify the training data that is compiled in the folder by clicking on the subject's folder then clicking _open_
+  + Be sure to select both the __images__ and __traces__ folders. 
+  + Check that __ROI_config.txt__ is in the Subject1/ folder
  + Select __send email notification__
 
  > This will send an email once the program is done running. It may take hours or even days depending on the system, number of images, an other variables. You should adjust your settings so that your computer does not fall asleep.
 
  > For further information on this program and the other programs mentioned above, you should refer to the dissertation by Jeff Berry.
-
-(T: Error occurs at this point during execution of matlab script. No clear error message. Zeros in data not the culprit)
 
 Autotrace
 ---

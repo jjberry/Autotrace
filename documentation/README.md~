@@ -18,7 +18,7 @@ Preparing Images and Traces for Training
 
 Training AutoTrace
 ---
- + [Training a translational Deep Belief Network](Trainnetwork.md)
+ + [Training a translational Deep Belief Network](Trainginganetwork.md)
 
 Automatically Tracing Images
 ---

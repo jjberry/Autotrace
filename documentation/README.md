@@ -6,7 +6,7 @@ Collecting Data
 
 Selecting Images for Training
 ---
- + Image Diversity (todo)
+ + [Image Diversity](imagediversityNEW.md)
 
 Manually Tracing Images
 ---
@@ -18,7 +18,7 @@ Preparing Images and Traces for Training
 
 Training AutoTrace
 ---
- + [Training a translational Deep Belief Network](Trainginganetwork.md)
+ + [Training a translational Deep Belief Network](TrainNetwork.md)
 
 Automatically Tracing Images
 ---
