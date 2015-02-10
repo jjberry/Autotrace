@@ -10,6 +10,15 @@ Locating AutoTrace Program
 
 [Open AutoTrace](../AutoTrace.py) by navigating to the matlab-version folder and typing the command `python AutoTrace.py`
 
+Using Autotrace to trace manually
+=====
+Locating AutoTrace Program
+----
+ + Open Program
+ ![Image1](images/Image1.png)
+
+[Open AutoTrace](../AutoTrace.py) by navigating to the matlab-version folder and typing the command `python AutoTrace.py`
+
 Adding Images to Autotrace
 ----
 
@@ -87,6 +96,16 @@ Checking Output
 
 ![Image4](images/Image4.png)
 Desired result
+
+Using Autotrace to Trace Automatically
+=====
+  + Click the second icon from the left, "Load Network"
+ ![Autotrace2](images/Autotrace2.png)
+ + Select the _network.mat_ file in the _savefiles_ directory in your Autotrace folder and click _open_. 
+![Autotrace3](images/Autotrace3.png) 
+ + Click the leftmost icon, "Load Images", select a test set of images and click _open_
+ + Click the "gears" icon to begin tracing the images. At this point, __Matlab__ will start. You will see a notification window when it is finished. 
+
 
 Exiting
 ----

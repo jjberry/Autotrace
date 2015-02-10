@@ -1,5 +1,11 @@
 AutoTrace FAQ
 ===
+
+Instructions for use of Autotrace
+---
+
++ [Walkthrough](StartHere.md)
+
 Collecting Data
 ---
  + [Data Collection Manual (APIL method)](https://github.com/myedibleenso/APIL/blob/master/documentation/datacollection.md)
@@ -22,9 +28,13 @@ Training AutoTrace
 
 Automatically Tracing Images
 ---
- + AutoTrace (todo)
+ + [AutoTrace](autotrace.md)
 
 Analyzing Data
 ---
  + [Linguaview](linguaviewer.md)
  + [Selecting a Region of Interest](selectroi.md)
+
+Common Issues
+---
+ + [Troubleshooting help](CommonErrors.md)
